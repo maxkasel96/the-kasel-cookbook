@@ -4,14 +4,7 @@ import { supabaseBrowserClient } from '@/lib/supabase/client'
 
 export default function LoginPage() {
   async function signInWithGoogle() {
-    const fallbackOrigin = window.location.origin
-    const publicSiteUrl =
-      process.env.NEXT_PUBLIC_SITE_URL ?? process.env.NEXT_PUBLIC_VERCEL_URL
-    const baseUrl = publicSiteUrl
-      ? publicSiteUrl.startsWith('http')
-        ? publicSiteUrl
-        : `https://${publicSiteUrl}`
-      : fallbackOrigin
+    const baseUrl = window.location.origin
     const redirectUrl = new URL('/auth/callback', baseUrl).toString()
     await supabaseBrowserClient.auth.signInWithOAuth({
       provider: 'google',
