@@ -17,6 +17,7 @@ type RecipePayload = {
   cookMinutes?: number | string | null;
   servings?: number | string | null;
   status?: "draft" | "published";
+  isDeleted?: boolean;
   tags?: string[];
   ingredients: RecipeIngredientPayload[];
   steps: string[];
@@ -77,9 +78,6 @@ export async function POST(request: Request) {
         servings: parseOptionalNumber(body.servings),
         slug,
         status,
-        prep_minutes: body.prepMinutes ?? null,
-        cook_minutes: body.cookMinutes ?? null,
-        servings: body.servings ?? null,
         is_deleted: body.isDeleted ?? false,
       })
       .select("id")
