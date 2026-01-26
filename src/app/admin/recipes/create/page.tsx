@@ -27,7 +27,6 @@ export default function AdminCreateRecipePage() {
   const [prepMinutes, setPrepMinutes] = useState("");
   const [cookMinutes, setCookMinutes] = useState("");
   const [servings, setServings] = useState("");
-  const [isDeleted, setIsDeleted] = useState(false);
   const [tagInput, setTagInput] = useState("");
   const [tags, setTags] = useState<string[]>([]);
   const [isSaving, setIsSaving] = useState(false);
@@ -150,7 +149,6 @@ export default function AdminCreateRecipePage() {
       cookMinutes: Number.isFinite(parsedCookMinutes) ? parsedCookMinutes : null,
       servings: Number.isFinite(parsedServings) ? parsedServings : null,
       status,
-      isDeleted,
       tags: normalizedTags,
       ingredients: ingredients
         .map((ingredient) => ({
@@ -283,15 +281,6 @@ export default function AdminCreateRecipePage() {
                 value={description}
                 onChange={(event) => setDescription(event.target.value)}
               />
-            </label>
-            <label className="flex items-center gap-3 text-sm font-medium">
-              <input
-                className="h-4 w-4 rounded border-border"
-                type="checkbox"
-                checked={isDeleted}
-                onChange={(event) => setIsDeleted(event.target.checked)}
-              />
-              Mark as deleted
             </label>
           </section>
 
