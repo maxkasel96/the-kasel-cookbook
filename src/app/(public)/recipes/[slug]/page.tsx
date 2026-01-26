@@ -20,7 +20,14 @@ export default async function RecipeDetailPage({
   }
 
   const tagList =
-    recipe.recipe_tags?.map((tagLink: any) => tagLink.tags?.name).filter(Boolean) ?? []
+    recipe.recipe_tags
+      ?.flatMap((tagLink: any) => {
+        if (Array.isArray(tagLink?.tags)) {
+          return tagLink.tags.map((tag: any) => tag?.name).filter(Boolean)
+        }
+        return tagLink?.tags?.name ? [tagLink.tags.name] : []
+      })
+      .filter(Boolean) ?? []
 
   const detailItems = [
     recipe.prep_minutes

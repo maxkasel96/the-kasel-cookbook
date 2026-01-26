@@ -24,6 +24,14 @@ export default function RecipesClient({
     const names = new Set<string>()
     recipes.forEach((recipe) => {
       recipe.recipe_tags?.forEach((recipeTag) => {
+        if (Array.isArray(recipeTag?.tags)) {
+          recipeTag.tags.forEach((tag) => {
+            if (tag?.name) {
+              names.add(tag.name)
+            }
+          })
+          return
+        }
         if (recipeTag?.tags?.name) {
           names.add(recipeTag.tags.name)
         }
@@ -46,7 +54,12 @@ export default function RecipesClient({
 
       const recipeTagNames =
         recipe.recipe_tags
-          ?.map((recipeTag) => recipeTag?.tags?.name)
+          ?.flatMap((recipeTag) => {
+            if (Array.isArray(recipeTag?.tags)) {
+              return recipeTag.tags.map((tag) => tag?.name).filter(Boolean)
+            }
+            return recipeTag?.tags?.name ? [recipeTag.tags.name] : []
+          })
           .filter(Boolean) ?? []
 
       return selectedTags.every((tag) => recipeTagNames.includes(tag))

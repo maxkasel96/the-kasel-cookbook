@@ -4,11 +4,18 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 
 type RecipeTag = {
   tag_id: string | number
-  tags: {
-    id: string | number
-    name: string
-    category?: string | null
-  } | null
+  tags:
+    | {
+        id: string | number
+        name: string
+        category?: string | null
+      }
+    | Array<{
+        id: string | number
+        name: string
+        category?: string | null
+      }>
+    | null
 }
 
 export type FavoriteRecipe = {
