@@ -34,8 +34,8 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <div className="min-h-screen">
-          <header className="border-b border-black/10 bg-white/90 px-6 py-4 backdrop-blur dark:border-white/10 dark:bg-black/80">
+        <div className="min-h-screen bg-background text-foreground">
+          <header className="border-b border-border bg-surface/90 px-6 py-4 backdrop-blur">
             <div className="mx-auto flex w-full max-w-5xl flex-wrap items-center justify-between gap-4">
               <div className="text-lg font-semibold">The Kasel Cookbook</div>
               <nav aria-label="Primary">
@@ -43,7 +43,7 @@ export default function RootLayout({
                   {navigation.map((item) => (
                     <li key={item.href}>
                       <Link
-                        className="rounded-full border border-transparent px-3 py-1 transition hover:border-black/10 hover:bg-black/5 dark:hover:border-white/10 dark:hover:bg-white/10"
+                        className="rounded-full border border-transparent px-3 py-1 transition hover:border-border hover:bg-surface-2"
                         href={item.href}
                       >
                         {item.label}
