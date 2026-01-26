@@ -36,9 +36,9 @@ export async function getRecipeBySlug(slug: string) {
         created_at,
         recipe_ingredients (
           id,
-          ingredient_text,
           quantity,
           unit,
+          ingredient_text,
           note,
           is_optional,
           position
@@ -93,9 +93,9 @@ export async function getRecipeForEditBySlug(slug: string) {
         created_at,
         recipe_ingredients (
           id,
-          ingredient_text,
           quantity,
           unit,
+          ingredient_text,
           note,
           is_optional,
           position
