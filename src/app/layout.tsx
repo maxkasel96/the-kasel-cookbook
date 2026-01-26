@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import SiteHeader from "./components/site-header";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -23,37 +23,13 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const navigation = [
-    { label: "Home", href: "/" },
-    { label: "Recipes", href: "/recipes" },
-    { label: "Login", href: "/login" },
-  ];
-
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} overflow-x-hidden antialiased`}
       >
         <div className="min-h-screen bg-background text-foreground">
-          <header className="border-b border-border bg-surface/90 px-6 py-4 backdrop-blur">
-            <div className="mx-auto flex w-full max-w-5xl flex-wrap items-center justify-between gap-4">
-              <div className="text-lg font-semibold">The Kasel Cookbook</div>
-              <nav aria-label="Primary">
-                <ul className="flex flex-wrap gap-3 text-sm font-medium">
-                  {navigation.map((item) => (
-                    <li key={item.href}>
-                      <Link
-                        className="rounded-full border border-transparent px-3 py-1 transition hover:border-border hover:bg-surface-2"
-                        href={item.href}
-                      >
-                        {item.label}
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              </nav>
-            </div>
-          </header>
+          <SiteHeader />
           {children}
         </div>
       </body>
