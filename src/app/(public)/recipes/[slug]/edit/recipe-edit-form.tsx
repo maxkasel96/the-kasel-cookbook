@@ -118,7 +118,7 @@ export default function RecipeEditForm({ recipe }: RecipeEditFormProps) {
     setSteps((prev) => (prev.length > 1 ? prev.filter((step) => step.id !== id) : prev));
   };
 
-  const handleSave = async () => {
+  const handleSave = async (status: "draft" | "published") => {
     setFormError(null);
     setFormStatus(null);
 
@@ -130,7 +130,7 @@ export default function RecipeEditForm({ recipe }: RecipeEditFormProps) {
     const payload = {
       title: title.trim(),
       description: description.trim(),
-      status: "published" as const,
+      status,
       ingredients: ingredients
         .map((ingredient) => ({
           ingredientText: ingredient.ingredientText.trim(),
@@ -176,7 +176,11 @@ export default function RecipeEditForm({ recipe }: RecipeEditFormProps) {
       const responsePayload = (await response.json()) as { slug?: string };
       const nextSlug = responsePayload.slug ?? currentSlug;
 
-      setFormStatus("Recipe updated successfully.");
+      setFormStatus(
+        status === "published"
+          ? "Recipe updated and published."
+          : "Draft updated successfully."
+      );
 
       if (nextSlug !== currentSlug) {
         setCurrentSlug(nextSlug);
@@ -420,10 +424,18 @@ export default function RecipeEditForm({ recipe }: RecipeEditFormProps) {
               <button
                 className="rounded-full bg-accent px-6 py-2 text-sm font-semibold text-white transition hover:bg-danger"
                 type="button"
-                onClick={handleSave}
+                onClick={() => handleSave("published")}
                 disabled={isSaving}
               >
                 {isSaving ? "Saving..." : "Update recipe"}
+              </button>
+              <button
+                className="rounded-full border border-border-strong px-6 py-2 text-sm font-semibold text-foreground transition hover:border-accent-2 hover:text-accent-2"
+                type="button"
+                onClick={() => handleSave("draft")}
+                disabled={isSaving}
+              >
+                Save as draft
               </button>
               <a
                 className="rounded-full border border-border-strong px-6 py-2 text-sm font-semibold text-foreground transition hover:border-accent-2 hover:text-accent-2"
