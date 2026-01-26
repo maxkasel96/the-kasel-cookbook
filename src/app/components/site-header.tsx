@@ -63,7 +63,7 @@ export default function SiteHeader() {
       />
       <aside
         id="mobile-navigation"
-        className={`fixed right-0 top-0 z-50 flex h-full w-72 flex-col gap-6 border-l border-border bg-background px-6 py-6 shadow-xl transition-transform md:hidden ${
+        className={`fixed right-0 top-0 z-50 flex h-full w-[85vw] max-w-xs flex-col gap-6 overflow-y-auto border-l border-border bg-background px-6 py-6 shadow-xl transition-transform md:hidden ${
           isOpen ? "translate-x-0" : "translate-x-full"
         }`}
         aria-hidden={!isOpen}
