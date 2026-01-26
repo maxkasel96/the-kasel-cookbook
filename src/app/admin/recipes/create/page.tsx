@@ -28,6 +28,8 @@ export default function AdminCreateRecipePage() {
   const [cookMinutes, setCookMinutes] = useState("");
   const [servings, setServings] = useState("");
   const [isDeleted, setIsDeleted] = useState(false);
+  const [tagInput, setTagInput] = useState("");
+  const [tags, setTags] = useState<string[]>([]);
   const [isSaving, setIsSaving] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
   const [formStatus, setFormStatus] = useState<string | null>(null);
@@ -99,6 +101,23 @@ export default function AdminCreateRecipePage() {
     setSteps((prev) => (prev.length > 1 ? prev.filter((step) => step.id !== id) : prev));
   };
 
+  const addTag = (value: string) => {
+    const normalized = value.trim();
+    if (!normalized) {
+      return;
+    }
+
+    setTags((prev) =>
+      prev.some((tag) => tag.toLowerCase() === normalized.toLowerCase())
+        ? prev
+        : [...prev, normalized]
+    );
+  };
+
+  const removeTag = (value: string) => {
+    setTags((prev) => prev.filter((tag) => tag !== value));
+  };
+
   const handleSave = async (status: "draft" | "published") => {
     setFormError(null);
     setFormStatus(null);
@@ -112,6 +131,18 @@ export default function AdminCreateRecipePage() {
     const parsedCookMinutes = cookMinutes ? Number(cookMinutes) : null;
     const parsedServings = servings ? Number(servings) : null;
 
+    const pendingTag = tagInput.trim();
+    const normalizedTags = pendingTag
+      ? tags.some((tag) => tag.toLowerCase() === pendingTag.toLowerCase())
+        ? tags
+        : [...tags, pendingTag]
+      : tags;
+
+    if (pendingTag) {
+      setTags(normalizedTags);
+      setTagInput("");
+    }
+
     const payload = {
       title: title.trim(),
       description: description.trim(),
@@ -120,6 +151,7 @@ export default function AdminCreateRecipePage() {
       servings: Number.isFinite(parsedServings) ? parsedServings : null,
       status,
       isDeleted,
+      tags: normalizedTags,
       ingredients: ingredients
         .map((ingredient) => ({
           ingredientText: ingredient.ingredientText.trim(),
@@ -261,6 +293,57 @@ export default function AdminCreateRecipePage() {
               />
               Mark as deleted
             </label>
+          </section>
+
+          <section className="flex flex-col gap-4 rounded-3xl border border-border bg-surface-2 p-6">
+            <div className="flex flex-col gap-2">
+              <h2 className="text-lg font-semibold">Tags</h2>
+              <p className="text-sm text-text-muted">
+                Add existing or new tags to categorize this recipe.
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-3">
+              <input
+                className="h-11 min-w-[200px] flex-1 rounded-2xl border border-border bg-surface px-4 text-base text-foreground focus:border-focus focus:outline-none focus:ring-2 focus:ring-focus/40"
+                placeholder="e.g., Bread"
+                value={tagInput}
+                onChange={(event) => setTagInput(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter") {
+                    event.preventDefault();
+                    addTag(tagInput);
+                    setTagInput("");
+                  }
+                }}
+              />
+              <button
+                className="rounded-full border border-border-strong px-5 py-2 text-sm font-semibold text-foreground transition hover:border-accent-2 hover:text-accent-2"
+                type="button"
+                onClick={() => {
+                  addTag(tagInput);
+                  setTagInput("");
+                }}
+              >
+                Add tag
+              </button>
+            </div>
+            {tags.length > 0 ? (
+              <div className="flex flex-wrap gap-2">
+                {tags.map((tag) => (
+                  <button
+                    key={tag}
+                    className="flex items-center gap-2 rounded-full border border-border-strong px-4 py-1 text-sm font-medium text-foreground transition hover:border-danger hover:text-danger"
+                    type="button"
+                    onClick={() => removeTag(tag)}
+                  >
+                    {tag}
+                    <span className="text-xs uppercase tracking-[0.2em]">Remove</span>
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-text-muted">No tags added yet.</p>
+            )}
           </section>
 
           <section className="flex flex-col gap-5">
