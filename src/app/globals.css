@@ -5,32 +5,39 @@
    TOKENS — single theme (same in light/dark OS settings)
    ========================================================= */
 :root {
-  color-scheme: light;
+  /* Backgrounds */
+  --bg: #f5f3f0;
+  --surface: #f7f2ee;
+  --surface-2: #eee5dd;
 
-  --bg: #fff6e8;
-  --surface: #ffffff;
-  --surface-2: #ffefd6;
+  /* Text */
+  --text: #231610;
+  --text-muted: #693040;
 
-  --text: #1e1b16;
-  --text-muted: #5c574d;
+  /* Borders */
+  --border: #684131;
+  --border-strong: #231015;
 
-  --border: #e2d3b4;
-  --border-strong: #cdbb97;
+  /* Accents */
+  --accent: #452c21;
+  --accent-2: #996680;
+  --accent-hi: #c0b9a5;
+  --link: #8c4056;
 
-  --accent: #e94b35;
-  --accent-2: #2f8f83;
-  --accent-hi: #f2b705;
-  --link: #2f8f83;
+  /* Status */
+  --success: #8b5741;
+  --warning: #968a69;
+  --danger: #bf7389;
+  --info: #7a5266;
 
-  --success: #3e8e5a;
-  --warning: #e39b23;
-  --danger: #c63c2d;
-  --info: #3b6ea5;
+  /* Focus */
+  --focus: #ad6d52;
 
-  --focus: #3b6ea5;
-
+  /* Derived */
   --background: var(--bg);
   --foreground: var(--text);
+
+  color-scheme: light;
 }
 
 @theme inline {
@@ -50,8 +57,6 @@
   --color-danger: var(--danger);
   --color-info: var(--info);
   --color-focus: var(--focus);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
 }
 
 body {
@@ -61,7 +66,45 @@ body {
 }
 
 #mobile-navigation {
-  height: 100dvh;
+  max-height: 100vh;
   width: 100vw;
-  max-width: 100vw;
+}
+
+.btn-primary {
+  background: var(--accent);
+  color: var(--surface);
+  border: 3px solid var(--border-strong);
+  border-radius: 14px;
+  padding: 0.75rem 1.25rem;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  box-shadow: 4px 4px 0 var(--border-strong);
+  transition:
+    transform 120ms ease,
+    box-shadow 120ms ease;
+}
+
+.btn-primary:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 6px 6px 0 var(--border-strong);
+}
+
+.btn-primary:active {
+  transform: translate(2px, 2px);
+  box-shadow: 2px 2px 0 var(--border-strong);
+}
+
+.btn-secondary {
+  background: var(--accent-2);
+  color: var(--text);
+  border: 3px solid var(--border-strong);
+  border-radius: 999px;
+  padding: 0.65rem 1.1rem;
+  font-weight: 700;
+  box-shadow: 3px 3px 0 var(--border-strong);
+  transition: transform 120ms ease;
+}
+
+.btn-secondary:hover {
+  transform: scale(1.05) rotate(-1deg);
 }
