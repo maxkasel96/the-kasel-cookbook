@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 
 import { getRecipeBySlug } from '@/lib/db/recipes'
+import { RecipeIngredients } from './recipe-ingredients'
 
 type RecipeDetailPageProps = {
   params: Promise<{ slug: string }>
@@ -27,7 +28,6 @@ export default async function RecipeDetailPage({
     recipe.cook_minutes
       ? { label: 'Cook time', value: `${recipe.cook_minutes} min` }
       : null,
-    recipe.servings ? { label: 'Servings', value: recipe.servings } : null,
   ].filter(Boolean) as { label: string; value: string | number }[]
 
   return (
@@ -79,37 +79,10 @@ export default async function RecipeDetailPage({
       </header>
 
       <section className="grid gap-8 md:grid-cols-[minmax(0,1fr)_minmax(0,1.3fr)]">
-        <div className="rounded-2xl border border-muted/60 bg-muted/10 p-6">
-          <h2 className="text-xl font-semibold text-foreground">
-            Ingredients
-          </h2>
-          {recipe.recipe_ingredients?.length ? (
-            <ul className="mt-4 space-y-3 text-sm text-foreground">
-              {recipe.recipe_ingredients.map((ingredient: any) => (
-                <li key={ingredient.id} className="flex flex-col">
-                  <span className="font-medium">
-                    {ingredient.quantity
-                      ? `${ingredient.quantity} `
-                      : ''}
-                    {ingredient.unit ? `${ingredient.unit} ` : ''}
-                    {ingredient.ingredient_text}
-                  </span>
-                  {(ingredient.note || ingredient.is_optional) && (
-                    <span className="text-xs text-muted-foreground">
-                      {ingredient.note}
-                      {ingredient.note && ingredient.is_optional ? ' · ' : ''}
-                      {ingredient.is_optional ? 'Optional' : ''}
-                    </span>
-                  )}
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="mt-4 text-sm text-muted-foreground">
-              No ingredients were saved for this recipe.
-            </p>
-          )}
-        </div>
+        <RecipeIngredients
+          ingredients={recipe.recipe_ingredients ?? []}
+          initialServings={recipe.servings ?? null}
+        />
 
         <div className="rounded-2xl border border-muted/60 bg-background p-6 shadow-sm">
           <h2 className="text-xl font-semibold text-foreground">
