@@ -69,3 +69,54 @@ export async function getRecipeBySlug(slug: string) {
   if (error) throw new Error(error.message)
   return data
 }
+
+export async function getRecipeForEditBySlug(slug: string) {
+  const supabase = await createSupabaseServerClient()
+
+  const { data, error } = await supabase
+    .from('recipes')
+    .select(
+      `
+        id,
+        title,
+        description,
+        slug,
+        prep_minutes,
+        cook_minutes,
+        servings,
+        created_at,
+        recipe_ingredients (
+          id,
+          ingredient_text,
+          quantity,
+          unit,
+          note,
+          is_optional,
+          position
+        ),
+        recipe_instruction_steps (
+          id,
+          content,
+          position
+        ),
+        recipe_tags (
+          tag_id,
+          tags (
+            id,
+            name,
+            category
+          )
+        )
+      `
+    )
+    .eq('slug', slug)
+    .order('position', { foreignTable: 'recipe_ingredients', ascending: true })
+    .order('position', {
+      foreignTable: 'recipe_instruction_steps',
+      ascending: true,
+    })
+    .maybeSingle()
+
+  if (error) throw new Error(error.message)
+  return data
+}

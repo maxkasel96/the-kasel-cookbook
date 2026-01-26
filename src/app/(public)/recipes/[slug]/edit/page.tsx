@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 
-import { getRecipeBySlug } from "@/lib/db/recipes";
+import { getRecipeForEditBySlug } from "@/lib/db/recipes";
 
 import RecipeEditForm from "./recipe-edit-form";
 
@@ -10,7 +10,7 @@ type RecipeEditPageProps = {
 
 export default async function RecipeEditPage({ params }: RecipeEditPageProps) {
   const { slug } = params;
-  const recipe = await getRecipeBySlug(slug);
+  const recipe = await getRecipeForEditBySlug(slug);
 
   if (!recipe) {
     notFound();
