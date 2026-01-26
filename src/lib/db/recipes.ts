@@ -29,6 +29,9 @@ export async function getRecipeBySlug(slug: string) {
         title,
         description,
         slug,
+        prep_minutes,
+        cook_minutes,
+        servings,
         created_at,
         recipe_ingredients (
           id,
@@ -43,6 +46,14 @@ export async function getRecipeBySlug(slug: string) {
           id,
           content,
           position
+        ),
+        recipe_tags (
+          tag_id,
+          tags (
+            id,
+            name,
+            category
+          )
         )
       `
     )
