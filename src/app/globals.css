@@ -5,32 +5,39 @@
    TOKENS — single theme (same in light/dark OS settings)
    ========================================================= */
 :root {
-  color-scheme: light;
-
-  --bg: #fff6e8;
+  /* Surface / background */
+  --bg: #fff7ec;
   --surface: #ffffff;
-  --surface-2: #ffefd6;
+  --surface-2: #ffecd6;
 
-  --text: #1e1b16;
-  --text-muted: #5c574d;
+  /* Text */
+  --text: #2a211b;
+  --text-muted: #6d5f55;
 
-  --border: #e2d3b4;
-  --border-strong: #cdbb97;
+  /* Borders */
+  --border: #e9d6c0;
+  --border-strong: #d6bfa5;
 
-  --accent: #e94b35;
-  --accent-2: #2f8f83;
-  --accent-hi: #f2b705;
-  --link: #2f8f83;
+  /* Accents */
+  --accent: #ff5d6c;
+  --accent-2: #2fb6a3;
+  --accent-hi: #ffd166;
+  --link: #2fb6a3;
 
-  --success: #3e8e5a;
-  --warning: #e39b23;
-  --danger: #c63c2d;
-  --info: #3b6ea5;
+  /* Status */
+  --success: #38b26e;
+  --warning: #f2a93b;
+  --danger: #e04b5a;
+  --info: #4d8fe6;
 
-  --focus: #3b6ea5;
+  /* Focus */
+  --focus: #4d8fe6;
 
+  /* Derived */
   --background: var(--bg);
   --foreground: var(--text);
+
+  color-scheme: light;
 }
 
 @theme inline {
@@ -61,7 +68,53 @@ body {
 }
 
 #mobile-navigation {
-  height: 100dvh;
+  max-height: 100vh;
   width: 100vw;
-  max-width: 100vw;
+}
+
+.btn-primary {
+  background: var(--accent);
+  color: var(--surface);
+  border: 1px solid color-mix(in oklab, var(--accent) 70%, black);
+  border-radius: 999px;
+  padding: 0.65rem 1rem;
+  font-weight: 700;
+  transition:
+    transform 140ms ease,
+    filter 140ms ease,
+    box-shadow 140ms ease;
+  box-shadow: 0 10px 0 color-mix(in oklab, var(--accent) 55%, black 45%);
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.03);
+}
+
+.btn-primary:active {
+  transform: translateY(6px);
+  box-shadow: 0 4px 0 color-mix(in oklab, var(--accent) 55%, black 45%);
+}
+
+.btn-secondary {
+  background: transparent;
+  color: var(--text);
+  border: 2px solid var(--accent-2);
+  border-radius: 999px;
+  padding: 0.6rem 1rem;
+  font-weight: 700;
+  transition:
+    transform 140ms ease,
+    background 140ms ease,
+    box-shadow 140ms ease;
+}
+
+.btn-secondary:hover {
+  background: color-mix(in oklab, var(--accent-2) 14%, var(--surface));
+  transform: translateY(-1px);
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.08);
+}
+
+.btn-secondary:active {
+  transform: translateY(1px);
 }
