@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { notFound } from 'next/navigation'
 
 import { getRecipeBySlug } from '@/lib/db/recipes'
@@ -129,6 +130,15 @@ export default async function RecipeDetailPage({
           )}
         </div>
       </section>
+
+      <div className="fixed bottom-6 right-6 z-10">
+        <Link
+          href={`/recipes/${recipe.slug}/edit`}
+          className="rounded-full bg-accent px-6 py-3 text-sm font-semibold text-white shadow-lg transition hover:bg-danger"
+        >
+          Edit recipe
+        </Link>
+      </div>
     </main>
   )
 }
