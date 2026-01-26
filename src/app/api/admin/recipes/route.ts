@@ -11,18 +11,12 @@ type RecipeIngredientPayload = {
 };
 
 type RecipePayload = {
-  id?: string | null;
   title: string;
-  slug?: string | null;
   description?: string;
-  ingredientsText?: string | null;
-  instructionsText?: string | null;
   prepMinutes?: number | null;
   cookMinutes?: number | null;
   servings?: number | null;
   status?: "draft" | "published";
-  createdAt?: string | null;
-  updatedAt?: string | null;
   isDeleted?: boolean;
   ingredients: RecipeIngredientPayload[];
   steps: string[];
@@ -59,24 +53,19 @@ export async function POST(request: Request) {
     }
 
     const supabase = createSupabaseAdminClient();
-    const slug = body.slug?.trim() || slugify(body.title);
+    const slug = slugify(body.title);
     const status = body.status ?? "draft";
 
     const { data: recipe, error: recipeError } = await supabase
       .from("recipes")
       .insert({
-        id: body.id ?? undefined,
         title: body.title.trim(),
         description: body.description?.trim() ?? null,
         slug,
         status,
-        ingredients: body.ingredientsText?.trim() ?? null,
-        instructions: body.instructionsText?.trim() ?? null,
         prep_minutes: body.prepMinutes ?? null,
         cook_minutes: body.cookMinutes ?? null,
         servings: body.servings ?? null,
-        created_at: body.createdAt ?? null,
-        updated_at: body.updatedAt ?? null,
         is_deleted: body.isDeleted ?? false,
       })
       .select("id")

@@ -21,29 +21,13 @@ const createId = () =>
     ? crypto.randomUUID()
     : `temp-${Date.now()}-${Math.random()}`;
 
-const parseDateTimeInput = (value: string) => {
-  if (!value) {
-    return null;
-  }
-
-  const parsed = new Date(value);
-  return Number.isNaN(parsed.getTime()) ? null : parsed.toISOString();
-};
-
 export default function AdminCreateRecipePage() {
   const [title, setTitle] = useState("");
-  const [slug, setSlug] = useState("");
   const [description, setDescription] = useState("");
   const [prepMinutes, setPrepMinutes] = useState("");
   const [cookMinutes, setCookMinutes] = useState("");
   const [servings, setServings] = useState("");
-  const [status, setStatus] = useState<"draft" | "published">("draft");
-  const [recipeId, setRecipeId] = useState("");
-  const [createdAt, setCreatedAt] = useState("");
-  const [updatedAt, setUpdatedAt] = useState("");
   const [isDeleted, setIsDeleted] = useState(false);
-  const [ingredientsText, setIngredientsText] = useState("");
-  const [instructionsText, setInstructionsText] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
   const [formStatus, setFormStatus] = useState<string | null>(null);
@@ -127,22 +111,14 @@ export default function AdminCreateRecipePage() {
     const parsedPrepMinutes = prepMinutes ? Number(prepMinutes) : null;
     const parsedCookMinutes = cookMinutes ? Number(cookMinutes) : null;
     const parsedServings = servings ? Number(servings) : null;
-    const parsedCreatedAt = parseDateTimeInput(createdAt);
-    const parsedUpdatedAt = parseDateTimeInput(updatedAt);
 
     const payload = {
-      id: recipeId.trim() || null,
       title: title.trim(),
-      slug: slug.trim() || null,
       description: description.trim(),
-      ingredientsText: ingredientsText.trim() || null,
-      instructionsText: instructionsText.trim() || null,
       prepMinutes: Number.isFinite(parsedPrepMinutes) ? parsedPrepMinutes : null,
       cookMinutes: Number.isFinite(parsedCookMinutes) ? parsedCookMinutes : null,
       servings: Number.isFinite(parsedServings) ? parsedServings : null,
       status,
-      createdAt: parsedCreatedAt,
-      updatedAt: parsedUpdatedAt,
       isDeleted,
       ingredients: ingredients
         .map((ingredient) => ({
@@ -230,15 +206,10 @@ export default function AdminCreateRecipePage() {
                   onChange={(event) => setTitle(event.target.value)}
                 />
               </label>
-              <label className="flex flex-col gap-2 text-sm font-medium">
-                Slug
-                <input
-                  className="h-12 rounded-2xl border border-border bg-surface-2 px-4 text-base text-foreground focus:border-focus focus:outline-none focus:ring-2 focus:ring-focus/40"
-                  placeholder="citrus-herb-chicken"
-                  value={slug}
-                  onChange={(event) => setSlug(event.target.value)}
-                />
-              </label>
+              <div className="rounded-2xl border border-dashed border-border-strong bg-surface-2 px-4 py-3 text-sm text-text-muted">
+                Slugs are generated automatically from the recipe title when you
+                save.
+              </div>
             </div>
             <div className="grid gap-4 md:grid-cols-3">
               <label className="flex flex-col gap-2 text-sm font-medium">
@@ -281,50 +252,6 @@ export default function AdminCreateRecipePage() {
                 onChange={(event) => setDescription(event.target.value)}
               />
             </label>
-            <div className="grid gap-4 md:grid-cols-2">
-              <label className="flex flex-col gap-2 text-sm font-medium">
-                Status
-                <select
-                  className="h-12 rounded-2xl border border-border bg-surface-2 px-4 text-base text-foreground focus:border-focus focus:outline-none focus:ring-2 focus:ring-focus/40"
-                  value={status}
-                  onChange={(event) =>
-                    setStatus(event.target.value as "draft" | "published")
-                  }
-                >
-                  <option value="draft">Draft</option>
-                  <option value="published">Published</option>
-                </select>
-              </label>
-              <label className="flex flex-col gap-2 text-sm font-medium">
-                Recipe ID
-                <input
-                  className="h-12 rounded-2xl border border-border bg-surface-2 px-4 text-base text-foreground focus:border-focus focus:outline-none focus:ring-2 focus:ring-focus/40"
-                  placeholder="UUID (optional)"
-                  value={recipeId}
-                  onChange={(event) => setRecipeId(event.target.value)}
-                />
-              </label>
-            </div>
-            <div className="grid gap-4 md:grid-cols-2">
-              <label className="flex flex-col gap-2 text-sm font-medium">
-                Created at
-                <input
-                  className="h-12 rounded-2xl border border-border bg-surface-2 px-4 text-base text-foreground focus:border-focus focus:outline-none focus:ring-2 focus:ring-focus/40"
-                  type="datetime-local"
-                  value={createdAt}
-                  onChange={(event) => setCreatedAt(event.target.value)}
-                />
-              </label>
-              <label className="flex flex-col gap-2 text-sm font-medium">
-                Updated at
-                <input
-                  className="h-12 rounded-2xl border border-border bg-surface-2 px-4 text-base text-foreground focus:border-focus focus:outline-none focus:ring-2 focus:ring-focus/40"
-                  type="datetime-local"
-                  value={updatedAt}
-                  onChange={(event) => setUpdatedAt(event.target.value)}
-                />
-              </label>
-            </div>
             <label className="flex items-center gap-3 text-sm font-medium">
               <input
                 className="h-4 w-4 rounded border-border"
@@ -333,34 +260,6 @@ export default function AdminCreateRecipePage() {
                 onChange={(event) => setIsDeleted(event.target.checked)}
               />
               Mark as deleted
-            </label>
-          </section>
-
-          <section className="flex flex-col gap-5">
-            <div>
-              <h2 className="text-xl font-semibold">Table text fields</h2>
-              <p className="text-sm text-text-muted">
-                These fields map directly to the <code>ingredients</code> and
-                <code> instructions</code> columns on the <code>recipes</code> table.
-              </p>
-            </div>
-            <label className="flex flex-col gap-2 text-sm font-medium">
-              Ingredients (table)
-              <textarea
-                className="min-h-[120px] rounded-2xl border border-border bg-surface-2 px-4 py-3 text-base text-foreground focus:border-focus focus:outline-none focus:ring-2 focus:ring-focus/40"
-                placeholder="1 lb chicken thighs&#10;2 tbsp olive oil"
-                value={ingredientsText}
-                onChange={(event) => setIngredientsText(event.target.value)}
-              />
-            </label>
-            <label className="flex flex-col gap-2 text-sm font-medium">
-              Instructions (table)
-              <textarea
-                className="min-h-[120px] rounded-2xl border border-border bg-surface-2 px-4 py-3 text-base text-foreground focus:border-focus focus:outline-none focus:ring-2 focus:ring-focus/40"
-                placeholder="1. Marinate the chicken..."
-                value={instructionsText}
-                onChange={(event) => setInstructionsText(event.target.value)}
-              />
             </label>
           </section>
 
@@ -494,13 +393,6 @@ export default function AdminCreateRecipePage() {
                   Order your instructions as they should appear in the recipe.
                 </p>
               </div>
-              <button
-                className="rounded-full border border-border-strong px-5 py-2 text-sm font-semibold text-foreground transition hover:border-accent-2 hover:text-accent-2"
-                type="button"
-                onClick={addStep}
-              >
-                Add step
-              </button>
             </div>
 
             <div className="flex flex-col gap-4">
@@ -528,6 +420,13 @@ export default function AdminCreateRecipePage() {
                 </div>
               ))}
             </div>
+            <button
+              className="self-start rounded-full border border-border-strong px-5 py-2 text-sm font-semibold text-foreground transition hover:border-accent-2 hover:text-accent-2"
+              type="button"
+              onClick={addStep}
+            >
+              Add step
+            </button>
           </section>
 
           <section className="flex flex-col gap-4 rounded-3xl border border-border bg-surface-2 p-6">
@@ -552,7 +451,7 @@ export default function AdminCreateRecipePage() {
               <button
                 className="rounded-full bg-accent px-6 py-2 text-sm font-semibold text-white transition hover:bg-danger"
                 type="button"
-                onClick={() => handleSave(status)}
+                onClick={() => handleSave("published")}
                 disabled={isSaving}
               >
                 {isSaving ? "Saving..." : "Save recipe"}
