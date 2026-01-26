@@ -30,6 +30,14 @@ export default async function RecipeEditPage({ params }: RecipeEditPageProps) {
     content: step.content ?? "",
   }));
 
+  const tags = (recipe.recipe_tags ?? [])
+    .map((tagLink: any) => ({
+      id: String(tagLink.tags?.id ?? tagLink.tag_id ?? tagLink.id),
+      name: tagLink.tags?.name ?? "",
+      category: tagLink.tags?.category ?? null,
+    }))
+    .filter((tag: { name: string }) => tag.name);
+
   return (
     <RecipeEditForm
       recipe={{
@@ -37,8 +45,12 @@ export default async function RecipeEditPage({ params }: RecipeEditPageProps) {
         slug: recipe.slug,
         title: recipe.title,
         description: recipe.description,
+        prepMinutes: recipe.prep_minutes ?? null,
+        cookMinutes: recipe.cook_minutes ?? null,
+        servings: recipe.servings ?? null,
         ingredients,
         steps,
+        tags,
       }}
     />
   );
