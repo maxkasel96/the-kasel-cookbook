@@ -13,7 +13,12 @@ type RecipeIngredientPayload = {
 type RecipePayload = {
   title: string;
   description?: string;
+  prepMinutes?: number | null;
+  cookMinutes?: number | null;
+  servings?: number | null;
   status?: "draft" | "published";
+  isDeleted?: boolean;
+  tags?: string[];
   ingredients: RecipeIngredientPayload[];
   steps: string[];
 };
@@ -59,6 +64,10 @@ export async function POST(request: Request) {
         description: body.description?.trim() ?? null,
         slug,
         status,
+        prep_minutes: body.prepMinutes ?? null,
+        cook_minutes: body.cookMinutes ?? null,
+        servings: body.servings ?? null,
+        is_deleted: body.isDeleted ?? false,
       })
       .select("id")
       .single();
@@ -108,6 +117,75 @@ export async function POST(request: Request) {
     if (stepError) {
       await supabase.from("recipes").delete().eq("id", recipe.id);
       return NextResponse.json({ error: stepError.message }, { status: 500 });
+    }
+
+    const tagNames =
+      body.tags
+        ?.map((tag) => tag.trim())
+        .filter(Boolean)
+        .filter(
+          (tag, index, self) =>
+            self.findIndex(
+              (item) => item.toLowerCase() === tag.toLowerCase()
+            ) === index
+        ) ?? [];
+
+    if (tagNames.length > 0) {
+      const { data: existingTags, error: existingTagsError } = await supabase
+        .from("tags")
+        .select("id, name")
+        .in("name", tagNames);
+
+      if (existingTagsError) {
+        await supabase.from("recipes").delete().eq("id", recipe.id);
+        return NextResponse.json(
+          { error: existingTagsError.message },
+          { status: 500 }
+        );
+      }
+
+      const existingTagNames = new Set(
+        existingTags?.map((tag) => tag.name.toLowerCase()) ?? []
+      );
+      const newTagNames = tagNames.filter(
+        (tag) => !existingTagNames.has(tag.toLowerCase())
+      );
+
+      let createdTags = existingTags ?? [];
+
+      if (newTagNames.length > 0) {
+        const { data: insertedTags, error: insertTagsError } = await supabase
+          .from("tags")
+          .insert(newTagNames.map((name) => ({ name })))
+          .select("id, name");
+
+        if (insertTagsError) {
+          await supabase.from("recipes").delete().eq("id", recipe.id);
+          return NextResponse.json(
+            { error: insertTagsError.message },
+            { status: 500 }
+          );
+        }
+
+        createdTags = [...createdTags, ...(insertedTags ?? [])];
+      }
+
+      const tagLinks = createdTags.map((tag) => ({
+        recipe_id: recipe.id,
+        tag_id: tag.id,
+      }));
+
+      const { error: tagLinkError } = await supabase
+        .from("recipe_tags")
+        .insert(tagLinks);
+
+      if (tagLinkError) {
+        await supabase.from("recipes").delete().eq("id", recipe.id);
+        return NextResponse.json(
+          { error: tagLinkError.message },
+          { status: 500 }
+        );
+      }
     }
 
     return NextResponse.json({ id: recipe.id }, { status: 201 });
