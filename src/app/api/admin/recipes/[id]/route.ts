@@ -13,7 +13,11 @@ type RecipeIngredientPayload = {
 type RecipePayload = {
   title: string;
   description?: string;
+  prepMinutes?: number | string | null;
+  cookMinutes?: number | string | null;
+  servings?: number | string | null;
   status?: "draft" | "published";
+  tags?: string[];
   ingredients: RecipeIngredientPayload[];
   steps: string[];
 };
@@ -25,6 +29,17 @@ const slugify = (value: string) =>
     .replace(/[^a-z0-9\s-]/g, "")
     .replace(/\s+/g, "-")
     .replace(/-+/g, "-");
+
+const parseOptionalNumber = (value: unknown) => {
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return value;
+  }
+  if (typeof value === "string" && value.trim().length > 0) {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+  return null;
+};
 
 type RouteParams = {
   params: Promise<{
@@ -64,6 +79,9 @@ export async function PUT(request: Request, { params }: RouteParams) {
       .update({
         title: body.title.trim(),
         description: body.description?.trim() ?? null,
+        prep_minutes: parseOptionalNumber(body.prepMinutes),
+        cook_minutes: parseOptionalNumber(body.cookMinutes),
+        servings: parseOptionalNumber(body.servings),
         slug,
         status,
       })
@@ -138,6 +156,82 @@ export async function PUT(request: Request, { params }: RouteParams) {
 
     if (stepError) {
       return NextResponse.json({ error: stepError.message }, { status: 500 });
+    }
+
+    const { error: tagDeleteError } = await supabase
+      .from("recipe_tags")
+      .delete()
+      .eq("recipe_id", id);
+
+    if (tagDeleteError) {
+      return NextResponse.json(
+        { error: tagDeleteError.message },
+        { status: 500 }
+      );
+    }
+
+    const tagNames = (body.tags ?? [])
+      .map((tag) => tag.trim())
+      .filter(Boolean);
+    const uniqueTagMap = new Map(
+      tagNames.map((tag) => [tag.toLowerCase(), tag])
+    );
+    const uniqueTags = Array.from(uniqueTagMap.values());
+
+    if (uniqueTags.length > 0) {
+      const { data: existingTags, error: existingTagsError } = await supabase
+        .from("tags")
+        .select("id, name")
+        .in("name", uniqueTags);
+
+      if (existingTagsError) {
+        return NextResponse.json(
+          { error: existingTagsError.message },
+          { status: 500 }
+        );
+      }
+
+      const existingNames = new Set(
+        (existingTags ?? []).map((tag) => tag.name.toLowerCase())
+      );
+      const newTags = uniqueTags.filter(
+        (tag) => !existingNames.has(tag.toLowerCase())
+      );
+
+      let insertedTags: { id: string; name: string }[] = [];
+      if (newTags.length > 0) {
+        const { data: createdTags, error: createTagsError } = await supabase
+          .from("tags")
+          .insert(newTags.map((name) => ({ name })))
+          .select("id, name");
+
+        if (createTagsError) {
+          return NextResponse.json(
+            { error: createTagsError.message },
+            { status: 500 }
+          );
+        }
+
+        insertedTags = createdTags ?? [];
+      }
+
+      const allTags = [...(existingTags ?? []), ...insertedTags];
+
+      const { error: tagLinkError } = await supabase
+        .from("recipe_tags")
+        .insert(
+          allTags.map((tag) => ({
+            recipe_id: recipe.id,
+            tag_id: tag.id,
+          }))
+        );
+
+      if (tagLinkError) {
+        return NextResponse.json(
+          { error: tagLinkError.message },
+          { status: 500 }
+        );
+      }
     }
 
     return NextResponse.json({ id: recipe.id, slug: recipe.slug }, { status: 200 });
