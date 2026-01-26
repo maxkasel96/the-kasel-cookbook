@@ -21,7 +21,7 @@ export default function SiteHeader() {
   };
 
   return (
-    <header className="relative z-50 border-b border-border bg-surface/90 px-6 py-4 backdrop-blur">
+    <header className="relative z-[1000] border-b border-border bg-surface/90 px-6 py-4 backdrop-blur">
       <div className="mx-auto flex w-full max-w-5xl items-center justify-between gap-4">
         <div className="text-lg font-semibold">The Kasel Cookbook</div>
         <nav aria-label="Primary" className="hidden md:block">
@@ -55,7 +55,7 @@ export default function SiteHeader() {
         </button>
       </div>
       <div
-        className={`fixed inset-0 z-40 bg-black/40 transition-opacity md:hidden ${
+        className={`fixed inset-0 z-[1000] bg-black/40 transition-opacity md:hidden ${
           isOpen ? "opacity-100" : "pointer-events-none opacity-0"
         }`}
         aria-hidden={!isOpen}
@@ -63,7 +63,7 @@ export default function SiteHeader() {
       />
       <aside
         id="mobile-navigation"
-        className={`fixed right-0 top-0 z-[60] flex h-full w-[85vw] max-w-xs flex-col gap-6 overflow-y-auto border-l border-border bg-background px-6 py-6 shadow-xl transition-transform md:hidden ${
+        className={`fixed right-0 top-0 z-[1100] flex h-full w-[85vw] max-w-xs flex-col gap-6 overflow-y-auto border-l border-border bg-background px-6 py-6 shadow-xl transition-transform md:hidden ${
           isOpen ? "translate-x-0" : "translate-x-full"
         }`}
         aria-hidden={!isOpen}
