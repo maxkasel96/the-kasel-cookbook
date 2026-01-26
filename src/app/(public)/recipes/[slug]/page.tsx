@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation'
 
 import { getRecipeBySlug } from '@/lib/db/recipes'
 import { RecipeIngredients } from './recipe-ingredients'
+import FavoriteRecipeButton from './FavoriteRecipeButton'
 
 type RecipeDetailPageProps = {
   params: Promise<{ slug: string }>
@@ -32,18 +33,31 @@ export default async function RecipeDetailPage({
 
   return (
     <main className="mx-auto flex w-full max-w-4xl flex-col gap-8 px-6 py-10">
-      <header className="space-y-3">
-        <p className="text-sm font-semibold uppercase tracking-[0.3em] text-muted-foreground">
-          Saved recipe
-        </p>
-        <h1 className="text-4xl font-semibold text-foreground">
-          {recipe.title}
-        </h1>
-        {recipe.description ? (
-          <p className="text-base text-muted-foreground">
-            {recipe.description}
-          </p>
-        ) : null}
+      <header className="space-y-4">
+        <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+          <div className="space-y-3">
+            <p className="text-sm font-semibold uppercase tracking-[0.3em] text-muted-foreground">
+              Saved recipe
+            </p>
+            <h1 className="text-4xl font-semibold text-foreground">
+              {recipe.title}
+            </h1>
+            {recipe.description ? (
+              <p className="text-base text-muted-foreground">
+                {recipe.description}
+              </p>
+            ) : null}
+          </div>
+          <FavoriteRecipeButton
+            recipe={{
+              id: recipe.id,
+              slug: recipe.slug,
+              title: recipe.title,
+              description: recipe.description,
+              recipe_tags: recipe.recipe_tags,
+            }}
+          />
+        </div>
         {detailItems.length ? (
           <dl className="mt-4 grid gap-3 rounded-2xl border border-muted/60 bg-muted/10 p-4 text-sm text-foreground sm:grid-cols-3">
             {detailItems.map((item) => (

@@ -3,30 +3,22 @@
 import { useMemo, useState } from 'react'
 import Link from 'next/link'
 
-type RecipeTag = {
-  tag_id: string | number
-  tags: {
-    id: string | number
-    name: string
-    category?: string | null
-  } | null
-}
-
-type Recipe = {
-  id: string | number
-  slug: string
-  title: string
-  description?: string | null
-  recipe_tags?: RecipeTag[] | null
-}
+import { useFavorites, type FavoriteRecipe } from '@/lib/use-favorites'
 
 type RecipesClientProps = {
-  recipes: Recipe[]
+  recipes: FavoriteRecipe[]
+  emptyMessage?: string
+  noMatchMessage?: string
 }
 
-export default function RecipesClient({ recipes }: RecipesClientProps) {
+export default function RecipesClient({
+  recipes,
+  emptyMessage = 'No recipes have been published yet.',
+  noMatchMessage = 'No recipes match your search right now.',
+}: RecipesClientProps) {
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedTags, setSelectedTags] = useState<string[]>([])
+  const { isFavorite, toggleFavorite } = useFavorites()
 
   const availableTags = useMemo(() => {
     const names = new Set<string>()
@@ -137,11 +129,11 @@ export default function RecipesClient({ recipes }: RecipesClientProps) {
 
       {recipes.length === 0 ? (
         <p className="rounded-lg border border-dashed border-muted-foreground/40 bg-muted/20 px-4 py-8 text-center text-sm text-muted-foreground">
-          No recipes have been published yet.
+          {emptyMessage}
         </p>
       ) : filteredRecipes.length === 0 ? (
         <p className="rounded-lg border border-dashed border-muted-foreground/40 bg-muted/20 px-4 py-8 text-center text-sm text-muted-foreground">
-          No recipes match your search right now.
+          {noMatchMessage}
         </p>
       ) : (
         <section className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -149,8 +141,30 @@ export default function RecipesClient({ recipes }: RecipesClientProps) {
             <Link
               key={recipe.id}
               href={`/recipes/${recipe.slug}`}
-              className="group flex h-full flex-col rounded-xl border border-muted/60 bg-background p-5 shadow-sm transition hover:-translate-y-1 hover:border-muted hover:shadow-md"
+              className="group relative flex h-full flex-col rounded-xl border border-muted/60 bg-background p-5 shadow-sm transition hover:-translate-y-1 hover:border-muted hover:shadow-md"
             >
+              <button
+                type="button"
+                onClick={(event) => {
+                  event.preventDefault()
+                  event.stopPropagation()
+                  toggleFavorite(recipe)
+                }}
+                className={`absolute right-4 top-4 rounded-full border p-2 text-sm transition ${
+                  isFavorite(recipe.id)
+                    ? 'border-primary/40 bg-primary/10 text-primary'
+                    : 'border-muted/60 text-muted-foreground hover:border-muted hover:bg-muted/30'
+                }`}
+                aria-label={
+                  isFavorite(recipe.id)
+                    ? `Remove ${recipe.title} from favorites`
+                    : `Add ${recipe.title} to favorites`
+                }
+              >
+                <span aria-hidden="true">
+                  {isFavorite(recipe.id) ? '♥' : '♡'}
+                </span>
+              </button>
               <div className="flex flex-1 flex-col gap-3">
                 <h2 className="text-xl font-semibold text-foreground transition group-hover:text-primary">
                   {recipe.title}
