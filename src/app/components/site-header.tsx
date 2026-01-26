@@ -21,7 +21,7 @@ export default function SiteHeader() {
   };
 
   return (
-    <header className="border-b border-border bg-surface/90 px-6 py-4 backdrop-blur">
+    <header className="relative z-50 border-b border-border bg-surface/90 px-6 py-4 backdrop-blur">
       <div className="mx-auto flex w-full max-w-5xl items-center justify-between gap-4">
         <div className="text-lg font-semibold">The Kasel Cookbook</div>
         <nav aria-label="Primary" className="hidden md:block">
