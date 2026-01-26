@@ -24,6 +24,9 @@ const createId = () =>
 export default function AdminCreateRecipePage() {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
+  const [formStatus, setFormStatus] = useState<string | null>(null);
   const [ingredients, setIngredients] = useState<Ingredient[]>([
     {
       id: createId(),
@@ -90,6 +93,77 @@ export default function AdminCreateRecipePage() {
 
   const removeStep = (id: string) => {
     setSteps((prev) => (prev.length > 1 ? prev.filter((step) => step.id !== id) : prev));
+  };
+
+  const handleSave = async (status: "draft" | "published") => {
+    setFormError(null);
+    setFormStatus(null);
+
+    if (!title.trim()) {
+      setFormError("Add a recipe title before saving.");
+      return;
+    }
+
+    const payload = {
+      title: title.trim(),
+      description: description.trim(),
+      status,
+      ingredients: ingredients
+        .map((ingredient) => ({
+          ingredientText: ingredient.ingredientText.trim(),
+          quantity: ingredient.quantity.trim(),
+          unit: ingredient.unit.trim(),
+          note: ingredient.note.trim(),
+          isOptional: ingredient.isOptional,
+        }))
+        .filter(
+          (ingredient) =>
+            ingredient.ingredientText ||
+            ingredient.quantity ||
+            ingredient.unit ||
+            ingredient.note
+        ),
+      steps: steps
+        .map((step) => step.content.trim())
+        .filter(Boolean),
+    };
+
+    if (payload.ingredients.length === 0) {
+      setFormError("Add at least one ingredient before saving.");
+      return;
+    }
+
+    if (payload.steps.length === 0) {
+      setFormError("Add at least one preparation step before saving.");
+      return;
+    }
+
+    setIsSaving(true);
+
+    try {
+      const response = await fetch("/api/admin/recipes", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        const errorPayload = (await response.json()) as { error?: string };
+        throw new Error(errorPayload.error ?? "Unable to save recipe.");
+      }
+
+      setFormStatus(
+        status === "published"
+          ? "Recipe saved and published."
+          : "Draft saved successfully."
+      );
+    } catch (error) {
+      setFormError(
+        error instanceof Error ? error.message : "Unable to save recipe."
+      );
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -307,19 +381,33 @@ export default function AdminCreateRecipePage() {
             <p className="text-sm text-text-muted">
               Saving will create entries in <code>recipes</code>,
               <code> recipe_ingredients</code>, and
-              <code> recipe_instruction_steps</code>. Wire this form to your API
-              handler when you are ready to persist data.
+              <code> recipe_instruction_steps</code>. This form now posts to
+              <code> /api/admin/recipes</code> when saving.
             </p>
+            {formError ? (
+              <p className="rounded-2xl border border-danger/30 bg-danger/10 px-4 py-3 text-sm text-danger">
+                {formError}
+              </p>
+            ) : null}
+            {formStatus ? (
+              <p className="rounded-2xl border border-success/30 bg-success/10 px-4 py-3 text-sm text-success">
+                {formStatus}
+              </p>
+            ) : null}
             <div className="flex flex-wrap gap-3">
               <button
                 className="rounded-full bg-accent px-6 py-2 text-sm font-semibold text-white transition hover:bg-danger"
                 type="button"
+                onClick={() => handleSave("published")}
+                disabled={isSaving}
               >
-                Save recipe
+                {isSaving ? "Saving..." : "Save recipe"}
               </button>
               <button
                 className="rounded-full border border-border-strong px-6 py-2 text-sm font-semibold text-foreground transition hover:border-accent-2 hover:text-accent-2"
                 type="button"
+                onClick={() => handleSave("draft")}
+                disabled={isSaving}
               >
                 Save as draft
               </button>
