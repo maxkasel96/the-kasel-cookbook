@@ -5,188 +5,57 @@
    TOKENS — single theme (same in light/dark OS settings)
    ========================================================= */
 :root {
-  /* Force UA widgets to stay light even if OS is dark */
   color-scheme: light;
 
-  /* Fonts (swap to your actual Next/font variables if using them) */
-  --font-display: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-  --font-body: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-  --font-label: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
-
-  /* Mid-century warm base + punchy accents (edit later) */
-  --bg: #fffaf0;
+  --bg: #fff6e8;
   --surface: #ffffff;
-  --surface-2: #fff3d6;
+  --surface-2: #ffefd6;
 
-  --text: #1b1b1b;
-  --text-muted: #4a4a4a;
+  --text: #1e1b16;
+  --text-muted: #5c574d;
 
-  --border: #e6d7b8;
-  --border-strong: #d4c29a;
+  --border: #e2d3b4;
+  --border-strong: #cdbb97;
 
-  --accent: #ff5a3d;
-  --accent-2: #2a9d8f;
-  --accent-hi: #ffd166;
-  --link: var(--accent-2);
+  --accent: #e94b35;
+  --accent-2: #2f8f83;
+  --accent-hi: #f2b705;
+  --link: #2f8f83;
 
-  --success: #2f9e44;
-  --warning: #f08c00;
-  --danger: #e03131;
-  --info: #1c7ed6;
-  --focus: #1c7ed6;
+  --success: #3e8e5a;
+  --warning: #e39b23;
+  --danger: #c63c2d;
+  --info: #3b6ea5;
 
-  --radius-sm: 0.5rem;
-  --radius-md: 0.85rem;
-  --radius-lg: 1.25rem;
-  --radius-xl: 1.75rem;
+  --focus: #3b6ea5;
 
-  --shadow-1: 0 2px 10px rgba(0, 0, 0, 0.06);
-  --shadow-2: 0 6px 18px rgba(0, 0, 0, 0.10);
-  --shadow-3: 0 12px 30px rgba(0, 0, 0, 0.14);
+  --background: var(--bg);
+  --foreground: var(--text);
 }
 
-@layer base {
-  html, body {
-    height: 100%;
-  }
-
-  body {
-    @apply bg-bg text-text font-sans antialiased;
-  }
-
-  a {
-    @apply text-link underline-offset-4 hover:underline;
-  }
-
-  /* Headings: poster-ish, tight */
-  h1, h2, h3, h4 {
-    @apply font-display tracking-[-0.01em] leading-[1.05] text-text;
-  }
-
-  h1 { @apply text-4xl; }
-  h2 { @apply text-3xl; }
-  h3 { @apply text-2xl; }
-  h4 { @apply text-xl; }
-
-  p { @apply leading-relaxed; }
-
-  :focus-visible {
-    outline: 3px solid color-mix(in srgb, var(--focus) 80%, white);
-    outline-offset: 3px;
-  }
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-text-muted: var(--text-muted);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-accent: var(--accent);
+  --color-accent-2: var(--accent-2);
+  --color-accent-hi: var(--accent-hi);
+  --color-link: var(--link);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-danger: var(--danger);
+  --color-info: var(--info);
+  --color-focus: var(--focus);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
 }
 
-@layer components {
-  /* Layout primitives */
-  .container-app {
-    @apply mx-auto w-full max-w-5xl px-5;
-  }
-
-  .card {
-    @apply rounded-2xl border border-border bg-surface shadow-1 p-5;
-  }
-
-  .divider {
-    @apply my-8 h-px bg-border;
-  }
-
-  .stack-4 {
-    @apply space-y-4;
-  }
-
-  .stack-6 {
-    @apply space-y-6;
-  }
-
-  .label {
-    @apply font-mono text-xs uppercase tracking-[0.06em] text-muted;
-  }
-
-  /* Buttons */
-  .btn {
-    @apply inline-flex items-center justify-center gap-2 rounded-md border border-borderStrong bg-surface px-4 py-3
-           text-sm font-medium leading-snug shadow-1 transition
-           hover:-translate-y-[1px] hover:shadow-2
-           active:translate-y-0 active:shadow-1
-           disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-1;
-    min-height: 44px;
-  }
-
-  .btn-primary {
-    @apply border-transparent bg-accent text-white;
-  }
-
-  .btn-secondary {
-    @apply border-transparent bg-accent2 text-white;
-  }
-
-  .btn-ghost {
-    @apply bg-transparent shadow-none hover:bg-surface2 hover:shadow-none;
-  }
-
-  .btn-danger {
-    @apply border-transparent bg-danger text-white;
-  }
-
-  /* Inputs */
-  .input {
-    @apply w-full rounded-md border border-borderStrong bg-surface px-4 py-3 text-sm leading-snug
-           placeholder:text-muted/70
-           focus:outline-none focus:ring-4 focus:ring-focus/20 focus:border-focus;
-    min-height: 44px;
-  }
-
-  .textarea {
-    @apply w-full rounded-md border border-borderStrong bg-surface px-4 py-3 text-sm leading-relaxed
-           placeholder:text-muted/70
-           focus:outline-none focus:ring-4 focus:ring-focus/20 focus:border-focus;
-  }
-
-  .select {
-    @apply w-full rounded-md border border-borderStrong bg-surface px-4 py-3 text-sm leading-snug
-           focus:outline-none focus:ring-4 focus:ring-focus/20 focus:border-focus;
-    min-height: 44px;
-  }
-
-  /* Chips / tags (passport stamp vibe) */
-  .chip {
-    @apply inline-flex items-center gap-2 rounded-full border border-borderStrong bg-surface2 px-3 py-1 text-sm;
-  }
-  .chip-hi {
-    @apply border-highlight/60 bg-highlight/30;
-  }
-
-  /* Table (ingredients) */
-  .table-base {
-    @apply w-full border border-border bg-surface rounded-md overflow-hidden;
-  }
-  .table-base th {
-    @apply bg-surface2 font-mono text-xs uppercase tracking-[0.06em] text-muted;
-  }
-  .table-base th,
-  .table-base td {
-    @apply border-b border-border px-4 py-3 align-top;
-  }
-  .table-base tr:last-child td {
-    @apply border-b-0;
-  }
-  .td-num {
-    @apply text-right whitespace-nowrap;
-  }
-
-  /* Alerts */
-  .alert {
-    @apply rounded-md border border-borderStrong bg-surface2 px-4 py-3 text-sm;
-  }
-  .alert-success { @apply border-success/40; }
-  .alert-warning { @apply border-warning/40; }
-  .alert-danger  { @apply border-danger/40; }
-  .alert-info    { @apply border-info/40; }
-}
-
-@layer utilities {
-  /* Helpful little utilities */
-  .pressable {
-    @apply transition hover:-translate-y-[1px] active:translate-y-0;
-  }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: Arial, Helvetica, sans-serif;
 }
