@@ -13,7 +13,7 @@ export default function AdminRecipesPage() {
           </div>
           <Link
             className="rounded-full bg-accent px-5 py-2 text-sm font-semibold text-white transition hover:bg-danger"
-            href="/recipes/create"
+            href="/admin/recipes/create"
           >
             Create recipe
           </Link>
