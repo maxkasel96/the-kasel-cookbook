@@ -16,9 +16,10 @@ type InstructionStep = {
   content: string;
 };
 
-type AvailableTag = {
+type TagOption = {
   id: string;
   name: string;
+  category?: string | null;
 };
 
 const createId = () =>
@@ -28,6 +29,11 @@ const createId = () =>
 
 export default function AdminCreateRecipePage() {
   const [title, setTitle] = useState("");
+  const [metadata, setMetadata] = useState({
+    prepMinutes: "",
+    cookMinutes: "",
+    servings: "",
+  });
   const [description, setDescription] = useState("");
   const [prepMinutes, setPrepMinutes] = useState("");
   const [cookMinutes, setCookMinutes] = useState("");
@@ -36,6 +42,7 @@ export default function AdminCreateRecipePage() {
   const [availableTags, setAvailableTags] = useState<AvailableTag[]>([]);
   const [tags, setTags] = useState<string[]>([]);
   const [isSaving, setIsSaving] = useState(false);
+  const [isLoadingTags, setIsLoadingTags] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
   const [formStatus, setFormStatus] = useState<string | null>(null);
   const [ingredients, setIngredients] = useState<Ingredient[]>([
@@ -51,6 +58,9 @@ export default function AdminCreateRecipePage() {
   const [steps, setSteps] = useState<InstructionStep[]>([
     { id: createId(), content: "" },
   ]);
+  const [availableTags, setAvailableTags] = useState<TagOption[]>([]);
+  const [selectedTags, setSelectedTags] = useState<TagOption[]>([]);
+  const [newTagName, setNewTagName] = useState("");
 
   useEffect(() => {
     const loadTags = async () => {
@@ -74,6 +84,99 @@ export default function AdminCreateRecipePage() {
       .length,
     [ingredients]
   );
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const fetchTags = async () => {
+      setIsLoadingTags(true);
+
+      try {
+        const response = await fetch("/api/admin/tags");
+        if (!response.ok) {
+          throw new Error("Unable to load tags.");
+        }
+        const payload = (await response.json()) as { tags?: TagOption[] };
+        if (isMounted) {
+          setAvailableTags(payload.tags ?? []);
+        }
+      } catch {
+        if (isMounted) {
+          setAvailableTags([]);
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoadingTags(false);
+        }
+      }
+    };
+
+    fetchTags();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const normalizeTag = (name: string) => name.trim().toLowerCase();
+
+  const toggleTag = (tag: TagOption) => {
+    setSelectedTags((prev) => {
+      const isSelected = prev.some(
+        (selected) => normalizeTag(selected.name) === normalizeTag(tag.name)
+      );
+
+      if (isSelected) {
+        return prev.filter(
+          (selected) =>
+            normalizeTag(selected.name) !== normalizeTag(tag.name)
+        );
+      }
+
+      return [...prev, tag];
+    });
+  };
+
+  const addNewTag = () => {
+    const trimmed = newTagName.trim();
+    if (!trimmed) return;
+
+    const existing = availableTags.find(
+      (tag) => normalizeTag(tag.name) === normalizeTag(trimmed)
+    );
+
+    const tagToAdd =
+      existing ?? {
+        id: `new-${createId()}`,
+        name: trimmed,
+      };
+
+    setAvailableTags((prev) =>
+      existing ? prev : [...prev, tagToAdd]
+    );
+    setSelectedTags((prev) => {
+      const isSelected = prev.some(
+        (tag) => normalizeTag(tag.name) === normalizeTag(tagToAdd.name)
+      );
+      return isSelected ? prev : [...prev, tagToAdd];
+    });
+    setNewTagName("");
+  };
+
+  const removeSelectedTag = (tagToRemove: TagOption) => {
+    setSelectedTags((prev) =>
+      prev.filter(
+        (tag) => normalizeTag(tag.name) !== normalizeTag(tagToRemove.name)
+      )
+    );
+  };
+
+  const parseOptionalNumber = (value: string) => {
+    const trimmed = value.trim();
+    if (!trimmed) return null;
+    const parsed = Number(trimmed);
+    return Number.isFinite(parsed) ? parsed : null;
+  };
 
   const handleIngredientChange = (
     id: string,
@@ -181,11 +284,11 @@ export default function AdminCreateRecipePage() {
     const payload = {
       title: title.trim(),
       description: description.trim(),
-      prepMinutes: Number.isFinite(parsedPrepMinutes) ? parsedPrepMinutes : null,
-      cookMinutes: Number.isFinite(parsedCookMinutes) ? parsedCookMinutes : null,
-      servings: Number.isFinite(parsedServings) ? parsedServings : null,
+      prepMinutes: parseOptionalNumber(metadata.prepMinutes),
+      cookMinutes: parseOptionalNumber(metadata.cookMinutes),
+      servings: parseOptionalNumber(metadata.servings),
       status,
-      tags: normalizedTags,
+      tags: selectedTags.map((tag) => tag.name),
       ingredients: ingredients
         .map((ingredient) => ({
           ingredientText: ingredient.ingredientText.trim(),
@@ -284,8 +387,13 @@ export default function AdminCreateRecipePage() {
                   className="h-12 rounded-2xl border border-border bg-surface-2 px-4 text-base text-foreground focus:border-focus focus:outline-none focus:ring-2 focus:ring-focus/40"
                   inputMode="numeric"
                   placeholder="20"
-                  value={prepMinutes}
-                  onChange={(event) => setPrepMinutes(event.target.value)}
+                  value={metadata.prepMinutes}
+                  onChange={(event) =>
+                    setMetadata((prev) => ({
+                      ...prev,
+                      prepMinutes: event.target.value,
+                    }))
+                  }
                 />
               </label>
               <label className="flex flex-col gap-2 text-sm font-medium">
@@ -294,8 +402,13 @@ export default function AdminCreateRecipePage() {
                   className="h-12 rounded-2xl border border-border bg-surface-2 px-4 text-base text-foreground focus:border-focus focus:outline-none focus:ring-2 focus:ring-focus/40"
                   inputMode="numeric"
                   placeholder="45"
-                  value={cookMinutes}
-                  onChange={(event) => setCookMinutes(event.target.value)}
+                  value={metadata.cookMinutes}
+                  onChange={(event) =>
+                    setMetadata((prev) => ({
+                      ...prev,
+                      cookMinutes: event.target.value,
+                    }))
+                  }
                 />
               </label>
               <label className="flex flex-col gap-2 text-sm font-medium">
@@ -304,8 +417,13 @@ export default function AdminCreateRecipePage() {
                   className="h-12 rounded-2xl border border-border bg-surface-2 px-4 text-base text-foreground focus:border-focus focus:outline-none focus:ring-2 focus:ring-focus/40"
                   inputMode="numeric"
                   placeholder="4"
-                  value={servings}
-                  onChange={(event) => setServings(event.target.value)}
+                  value={metadata.servings}
+                  onChange={(event) =>
+                    setMetadata((prev) => ({
+                      ...prev,
+                      servings: event.target.value,
+                    }))
+                  }
                 />
               </label>
             </div>
@@ -318,6 +436,91 @@ export default function AdminCreateRecipePage() {
                 onChange={(event) => setDescription(event.target.value)}
               />
             </label>
+            <div className="flex flex-col gap-4 rounded-3xl border border-border bg-surface-2 p-6">
+              <div className="flex flex-col gap-2">
+                <h3 className="text-base font-semibold">Tags</h3>
+                <p className="text-sm text-text-muted">
+                  Select from existing tags or add a new tag to categorize this
+                  recipe.
+                </p>
+              </div>
+              <div className="rounded-2xl border border-border bg-surface px-4 py-3">
+                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-text-muted">
+                  Existing tags
+                </p>
+                {isLoadingTags ? (
+                  <p className="mt-3 text-sm text-text-muted">Loading tags...</p>
+                ) : availableTags.length ? (
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {availableTags.map((tag) => {
+                      const isSelected = selectedTags.some(
+                        (selected) =>
+                          normalizeTag(selected.name) === normalizeTag(tag.name)
+                      );
+                      return (
+                        <button
+                          key={tag.id}
+                          className={`rounded-full border px-4 py-1 text-sm font-semibold transition ${
+                            isSelected
+                              ? "border-accent bg-accent/10 text-accent"
+                              : "border-border-strong text-foreground hover:border-accent-2 hover:text-accent-2"
+                          }`}
+                          type="button"
+                          onClick={() => toggleTag(tag)}
+                        >
+                          {tag.name}
+                        </button>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <p className="mt-3 text-sm text-text-muted">
+                    No existing tags found.
+                  </p>
+                )}
+              </div>
+              <label className="flex flex-col gap-2 text-sm font-medium">
+                Add a new tag
+                <div className="flex flex-wrap gap-3">
+                  <input
+                    className="h-11 flex-1 rounded-2xl border border-border bg-surface px-4 text-base text-foreground focus:border-focus focus:outline-none focus:ring-2 focus:ring-focus/40"
+                    placeholder="Seasonal"
+                    value={newTagName}
+                    onChange={(event) => setNewTagName(event.target.value)}
+                  />
+                  <button
+                    className="rounded-full border border-border-strong px-4 py-2 text-sm font-semibold text-foreground transition hover:border-accent-2 hover:text-accent-2"
+                    type="button"
+                    onClick={addNewTag}
+                  >
+                    Add new tag
+                  </button>
+                </div>
+              </label>
+              <div className="flex flex-col gap-2">
+                <p className="text-sm font-semibold text-text-muted">
+                  Selected tags
+                </p>
+                {selectedTags.length ? (
+                  <div className="flex flex-wrap gap-2">
+                    {selectedTags.map((tag) => (
+                      <button
+                        key={tag.id}
+                        className="rounded-full border border-border-strong px-4 py-1 text-sm font-semibold text-foreground transition hover:border-danger hover:text-danger"
+                        type="button"
+                        onClick={() => removeSelectedTag(tag)}
+                      >
+                        {tag.name} ×
+                      </button>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-text-muted">
+                    No tags selected yet.
+                  </p>
+                )}
+              </div>
+            </div>
           </section>
 
           <section className="flex flex-col gap-4 rounded-3xl border border-border bg-surface-2 p-6">
