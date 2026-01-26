@@ -20,6 +20,18 @@ You can start editing the page by modifying `app/page.tsx`. The page auto-update
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
+## Google OAuth setup (Supabase)
+
+If you see `Error 400: redirect_uri_mismatch` on the Google sign-in page, make sure your Google OAuth client is configured with Supabase’s callback URL and your app’s redirect URLs are allowed.
+
+1. In the Google Cloud Console, add this **Authorized redirect URI** to your OAuth client:
+   - `https://<your-supabase-project>.supabase.co/auth/v1/callback`
+2. In the Supabase dashboard (Authentication → URL Configuration), add your app’s URL(s) to **Redirect URLs**, for example:
+   - `http://localhost:3000/auth/callback`
+   - `https://<your-domain>/auth/callback`
+
+The app uses the current site origin as the OAuth redirect target and routes it through `/auth/callback`, so both Supabase and Google must allow those URLs. `src/app/login/page.tsx` builds the redirect URL from `window.location.origin` and `/auth/callback`. `src/app/auth/callback/route.ts` exchanges the code and redirects back to `/`.
+
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:
