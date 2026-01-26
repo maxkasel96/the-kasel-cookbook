@@ -6,7 +6,19 @@ export async function searchRecipes(query?: string) {
 
   let request = supabase
     .from('recipes')
-    .select('*')
+    .select(
+      `
+        *,
+        recipe_tags (
+          tag_id,
+          tags (
+            id,
+            name,
+            category
+          )
+        )
+      `
+    )
     .eq('status', 'published')
     .order('created_at', { ascending: false })
 
