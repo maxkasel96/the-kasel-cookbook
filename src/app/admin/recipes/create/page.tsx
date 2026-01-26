@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 type Ingredient = {
   id: string;
@@ -16,6 +16,11 @@ type InstructionStep = {
   content: string;
 };
 
+type AvailableTag = {
+  id: string;
+  name: string;
+};
+
 const createId = () =>
   typeof crypto !== "undefined" && "randomUUID" in crypto
     ? crypto.randomUUID()
@@ -27,7 +32,8 @@ export default function AdminCreateRecipePage() {
   const [prepMinutes, setPrepMinutes] = useState("");
   const [cookMinutes, setCookMinutes] = useState("");
   const [servings, setServings] = useState("");
-  const [tagInput, setTagInput] = useState("");
+  const [newTagInput, setNewTagInput] = useState("");
+  const [availableTags, setAvailableTags] = useState<AvailableTag[]>([]);
   const [tags, setTags] = useState<string[]>([]);
   const [isSaving, setIsSaving] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
@@ -45,6 +51,23 @@ export default function AdminCreateRecipePage() {
   const [steps, setSteps] = useState<InstructionStep[]>([
     { id: createId(), content: "" },
   ]);
+
+  useEffect(() => {
+    const loadTags = async () => {
+      try {
+        const response = await fetch("/api/admin/tags");
+        if (!response.ok) {
+          return;
+        }
+        const payload = (await response.json()) as { tags?: AvailableTag[] };
+        setAvailableTags(payload.tags ?? []);
+      } catch {
+        // Ignore tag loading failures; users can still add new tags.
+      }
+    };
+
+    loadTags();
+  }, []);
 
   const ingredientCount = useMemo(
     () => ingredients.filter((ingredient) => ingredient.ingredientText.trim())
@@ -100,6 +123,14 @@ export default function AdminCreateRecipePage() {
     setSteps((prev) => (prev.length > 1 ? prev.filter((step) => step.id !== id) : prev));
   };
 
+  const toggleTag = (value: string) => {
+    setTags((prev) =>
+      prev.some((tag) => tag.toLowerCase() === value.toLowerCase())
+        ? prev.filter((tag) => tag.toLowerCase() !== value.toLowerCase())
+        : [...prev, value]
+    );
+  };
+
   const addTag = (value: string) => {
     const normalized = value.trim();
     if (!normalized) {
@@ -130,7 +161,7 @@ export default function AdminCreateRecipePage() {
     const parsedCookMinutes = cookMinutes ? Number(cookMinutes) : null;
     const parsedServings = servings ? Number(servings) : null;
 
-    const pendingTag = tagInput.trim();
+    const pendingTag = newTagInput.trim();
     const normalizedTags = pendingTag
       ? tags.some((tag) => tag.toLowerCase() === pendingTag.toLowerCase())
         ? tags
@@ -139,7 +170,12 @@ export default function AdminCreateRecipePage() {
 
     if (pendingTag) {
       setTags(normalizedTags);
-      setTagInput("");
+      setNewTagInput("");
+      setAvailableTags((prev) =>
+        prev.some((tag) => tag.name.toLowerCase() === pendingTag.toLowerCase())
+          ? prev
+          : [...prev, { id: pendingTag, name: pendingTag }]
+      );
     }
 
     const payload = {
@@ -288,51 +324,79 @@ export default function AdminCreateRecipePage() {
             <div className="flex flex-col gap-2">
               <h2 className="text-lg font-semibold">Tags</h2>
               <p className="text-sm text-text-muted">
-                Add existing or new tags to categorize this recipe.
+                Select from existing tags or add a new tag to categorize this recipe.
               </p>
             </div>
-            <div className="flex flex-wrap gap-3">
-              <input
-                className="h-11 min-w-[200px] flex-1 rounded-2xl border border-border bg-surface px-4 text-base text-foreground focus:border-focus focus:outline-none focus:ring-2 focus:ring-focus/40"
-                placeholder="e.g., Bread"
-                value={tagInput}
-                onChange={(event) => setTagInput(event.target.value)}
-                onKeyDown={(event) => {
-                  if (event.key === "Enter") {
-                    event.preventDefault();
-                    addTag(tagInput);
-                    setTagInput("");
-                  }
-                }}
-              />
-              <button
-                className="rounded-full border border-border-strong px-5 py-2 text-sm font-semibold text-foreground transition hover:border-accent-2 hover:text-accent-2"
-                type="button"
-                onClick={() => {
-                  addTag(tagInput);
-                  setTagInput("");
-                }}
-              >
-                Add tag
-              </button>
-            </div>
-            {tags.length > 0 ? (
+            <div className="flex flex-col gap-4">
               <div className="flex flex-wrap gap-2">
-                {tags.map((tag) => (
-                  <button
-                    key={tag}
-                    className="flex items-center gap-2 rounded-full border border-border-strong px-4 py-1 text-sm font-medium text-foreground transition hover:border-danger hover:text-danger"
-                    type="button"
-                    onClick={() => removeTag(tag)}
-                  >
-                    {tag}
-                    <span className="text-xs uppercase tracking-[0.2em]">Remove</span>
-                  </button>
-                ))}
+                {availableTags.length > 0 ? (
+                  availableTags.map((tag) => {
+                    const isSelected = tags.some(
+                      (selectedTag) =>
+                        selectedTag.toLowerCase() === tag.name.toLowerCase()
+                    );
+                    return (
+                      <button
+                        key={tag.id}
+                        className={`rounded-full border px-4 py-1 text-sm font-medium transition ${
+                          isSelected
+                            ? "border-accent-2 bg-accent-2/10 text-accent-2"
+                            : "border-border-strong text-foreground hover:border-accent-2 hover:text-accent-2"
+                        }`}
+                        type="button"
+                        onClick={() => toggleTag(tag.name)}
+                      >
+                        {tag.name}
+                      </button>
+                    );
+                  })
+                ) : (
+                  <p className="text-sm text-text-muted">No existing tags found.</p>
+                )}
               </div>
-            ) : (
-              <p className="text-sm text-text-muted">No tags added yet.</p>
-            )}
+              <div className="flex flex-wrap gap-3">
+                <input
+                  className="h-11 min-w-[200px] flex-1 rounded-2xl border border-border bg-surface px-4 text-base text-foreground focus:border-focus focus:outline-none focus:ring-2 focus:ring-focus/40"
+                  placeholder="Add a new tag"
+                  value={newTagInput}
+                  onChange={(event) => setNewTagInput(event.target.value)}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter") {
+                      event.preventDefault();
+                      addTag(newTagInput);
+                      setNewTagInput("");
+                    }
+                  }}
+                />
+                <button
+                  className="rounded-full border border-border-strong px-5 py-2 text-sm font-semibold text-foreground transition hover:border-accent-2 hover:text-accent-2"
+                  type="button"
+                  onClick={() => {
+                    addTag(newTagInput);
+                    setNewTagInput("");
+                  }}
+                >
+                  Add new tag
+                </button>
+              </div>
+              {tags.length > 0 ? (
+                <div className="flex flex-wrap gap-2">
+                  {tags.map((tag) => (
+                    <button
+                      key={tag}
+                      className="flex items-center gap-2 rounded-full border border-border-strong px-4 py-1 text-sm font-medium text-foreground transition hover:border-danger hover:text-danger"
+                      type="button"
+                      onClick={() => removeTag(tag)}
+                    >
+                      {tag}
+                      <span className="text-xs uppercase tracking-[0.2em]">Remove</span>
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-text-muted">No tags selected yet.</p>
+              )}
+            </div>
           </section>
 
           <section className="flex flex-col gap-5">
