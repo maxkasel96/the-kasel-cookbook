@@ -5,33 +5,33 @@
    TOKENS — single theme (same in light/dark OS settings)
    ========================================================= */
 :root {
-  /* Surface / background */
-  --bg: #fff7ec;
+  /* Backgrounds */
+  --bg: #f3f0ff;
   --surface: #ffffff;
-  --surface-2: #ffecd6;
+  --surface-2: #e9fbff;
 
   /* Text */
-  --text: #2a211b;
-  --text-muted: #6d5f55;
+  --text: #1f1b2e;
+  --text-muted: #6c5ce7;
 
   /* Borders */
-  --border: #e9d6c0;
-  --border-strong: #d6bfa5;
+  --border: #1f1b2e;
+  --border-strong: #000000;
 
   /* Accents */
-  --accent: #ff5d6c;
-  --accent-2: #2fb6a3;
-  --accent-hi: #ffd166;
-  --link: #2fb6a3;
+  --accent: #ff3d81;
+  --accent-2: #00c2a8;
+  --accent-hi: #ffd400;
+  --link: #5a4bff;
 
   /* Status */
-  --success: #38b26e;
-  --warning: #f2a93b;
-  --danger: #e04b5a;
-  --info: #4d8fe6;
+  --success: #00d084;
+  --warning: #ffb703;
+  --danger: #ff004d;
+  --info: #3a86ff;
 
   /* Focus */
-  --focus: #4d8fe6;
+  --focus: #ffd400;
 
   /* Derived */
   --background: var(--bg);
@@ -57,8 +57,6 @@
   --color-danger: var(--danger);
   --color-info: var(--info);
   --color-focus: var(--focus);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
 }
 
 body {
@@ -74,47 +72,39 @@ body {
 
 .btn-primary {
   background: var(--accent);
-  color: var(--surface);
-  border: 1px solid color-mix(in oklab, var(--accent) 70%, black);
-  border-radius: 999px;
-  padding: 0.65rem 1rem;
-  font-weight: 700;
+  color: white;
+  border: 3px solid var(--border-strong);
+  border-radius: 14px;
+  padding: 0.75rem 1.25rem;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  box-shadow: 4px 4px 0 black;
   transition:
-    transform 140ms ease,
-    filter 140ms ease,
-    box-shadow 140ms ease;
-  box-shadow: 0 10px 0 color-mix(in oklab, var(--accent) 55%, black 45%);
+    transform 120ms ease,
+    box-shadow 120ms ease;
 }
 
 .btn-primary:hover {
-  transform: translateY(-2px);
-  filter: brightness(1.03);
+  transform: translate(-2px, -2px);
+  box-shadow: 6px 6px 0 black;
 }
 
 .btn-primary:active {
-  transform: translateY(6px);
-  box-shadow: 0 4px 0 color-mix(in oklab, var(--accent) 55%, black 45%);
+  transform: translate(2px, 2px);
+  box-shadow: 2px 2px 0 black;
 }
 
 .btn-secondary {
-  background: transparent;
-  color: var(--text);
-  border: 2px solid var(--accent-2);
+  background: var(--accent-2);
+  color: #002b26;
+  border: 3px solid var(--border-strong);
   border-radius: 999px;
-  padding: 0.6rem 1rem;
+  padding: 0.65rem 1.1rem;
   font-weight: 700;
-  transition:
-    transform 140ms ease,
-    background 140ms ease,
-    box-shadow 140ms ease;
+  box-shadow: 3px 3px 0 black;
+  transition: transform 120ms ease;
 }
 
 .btn-secondary:hover {
-  background: color-mix(in oklab, var(--accent-2) 14%, var(--surface));
-  transform: translateY(-1px);
-  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.08);
-}
-
-.btn-secondary:active {
-  transform: translateY(1px);
+  transform: scale(1.05) rotate(-1deg);
 }
