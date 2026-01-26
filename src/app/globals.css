@@ -1,5 +1,9 @@
+@config "../../tailwind.config.ts";
 @import "tailwindcss";
 
+/* =========================================================
+   TOKENS — single theme (same in light/dark OS settings)
+   ========================================================= */
 :root {
   color-scheme: light;
 
