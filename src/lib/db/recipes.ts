@@ -72,7 +72,12 @@ export async function getRecipeBySlug(slug: string) {
 }
 
 export async function getRecipeForEditBySlug(slug: string) {
-  const supabase = createSupabaseAdminClient()
+  const hasServiceRole =
+    Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL) &&
+    Boolean(process.env.SUPABASE_SERVICE_ROLE_KEY)
+  const supabase = hasServiceRole
+    ? createSupabaseAdminClient()
+    : await createSupabaseServerClient()
 
   const { data, error } = await supabase
     .from('recipes')
