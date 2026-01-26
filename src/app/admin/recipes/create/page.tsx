@@ -218,13 +218,6 @@ export default function AdminCreateRecipePage() {
                   {ingredientCount || 0} ingredient{ingredientCount === 1 ? "" : "s"} listed
                 </p>
               </div>
-              <button
-                className="rounded-full border border-border-strong px-5 py-2 text-sm font-semibold text-foreground transition hover:border-accent-2 hover:text-accent-2"
-                type="button"
-                onClick={addIngredient}
-              >
-                Add ingredient
-              </button>
             </div>
 
             <div className="flex flex-col gap-4">
@@ -330,6 +323,13 @@ export default function AdminCreateRecipePage() {
                 </div>
               ))}
             </div>
+            <button
+              className="self-start rounded-full border border-border-strong px-5 py-2 text-sm font-semibold text-foreground transition hover:border-accent-2 hover:text-accent-2"
+              type="button"
+              onClick={addIngredient}
+            >
+              Add ingredient
+            </button>
           </section>
 
           <section className="flex flex-col gap-5">
