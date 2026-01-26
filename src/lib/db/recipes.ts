@@ -1,3 +1,4 @@
+import { createSupabaseAdminClient } from '@/lib/supabase/admin'
 import { createSupabaseServerClient } from '@/lib/supabase/server'
 
 export async function searchRecipes(query?: string) {
@@ -71,7 +72,7 @@ export async function getRecipeBySlug(slug: string) {
 }
 
 export async function getRecipeForEditBySlug(slug: string) {
-  const supabase = await createSupabaseServerClient()
+  const supabase = createSupabaseAdminClient()
 
   const { data, error } = await supabase
     .from('recipes')
