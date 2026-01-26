@@ -5,11 +5,11 @@ import { getRecipeBySlug } from "@/lib/db/recipes";
 import RecipeEditForm from "./recipe-edit-form";
 
 type RecipeEditPageProps = {
-  params: Promise<{ slug: string }>;
+  params: { slug: string };
 };
 
 export default async function RecipeEditPage({ params }: RecipeEditPageProps) {
-  const { slug } = await params;
+  const { slug } = params;
   const recipe = await getRecipeBySlug(slug);
 
   if (!recipe) {

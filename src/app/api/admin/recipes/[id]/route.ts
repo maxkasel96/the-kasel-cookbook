@@ -27,13 +27,14 @@ const slugify = (value: string) =>
     .replace(/-+/g, "-");
 
 type RouteParams = {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 };
 
 export async function PUT(request: Request, { params }: RouteParams) {
   try {
+    const { id } = await params;
     const body = (await request.json()) as RecipePayload;
 
     if (!body.title || body.title.trim().length === 0) {
@@ -66,7 +67,7 @@ export async function PUT(request: Request, { params }: RouteParams) {
         slug,
         status,
       })
-      .eq("id", params.id)
+      .eq("id", id)
       .select("id, slug")
       .single();
 
@@ -80,7 +81,7 @@ export async function PUT(request: Request, { params }: RouteParams) {
     const { error: ingredientDeleteError } = await supabase
       .from("recipe_ingredients")
       .delete()
-      .eq("recipe_id", params.id);
+      .eq("recipe_id", id);
 
     if (ingredientDeleteError) {
       return NextResponse.json(
@@ -116,7 +117,7 @@ export async function PUT(request: Request, { params }: RouteParams) {
     const { error: stepDeleteError } = await supabase
       .from("recipe_instruction_steps")
       .delete()
-      .eq("recipe_id", params.id);
+      .eq("recipe_id", id);
 
     if (stepDeleteError) {
       return NextResponse.json(
