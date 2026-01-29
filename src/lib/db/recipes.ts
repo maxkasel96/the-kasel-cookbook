@@ -18,7 +18,7 @@ const recipesSelectWithCategories = `
       name
     )
   )
-` as const
+`
 
 const recipesSelectWithoutCategories = `
   *,
@@ -30,11 +30,22 @@ const recipesSelectWithoutCategories = `
       category
     )
   )
-` as const
+`
 
-type RecipesSelectClause =
-  | typeof recipesSelectWithCategories
-  | typeof recipesSelectWithoutCategories
+type RecipeRecord = {
+  id: string
+  title: string
+  description?: string | null
+  slug?: string
+  prep_minutes?: number | null
+  cook_minutes?: number | null
+  servings?: number | null
+  created_at?: string
+  recipe_ingredients?: unknown[] | null
+  recipe_instruction_steps?: unknown[] | null
+  recipe_tags?: unknown[] | null
+  recipe_categories?: unknown[] | null
+}
 
 const isMissingCategoryRelation = (message?: string) => {
   if (!message) return false
@@ -47,13 +58,13 @@ const isMissingCategoryRelation = (message?: string) => {
   )
 }
 
-export async function searchRecipes(query?: string) {
+export async function searchRecipes(query?: string): Promise<RecipeRecord[]> {
   const supabase = await createSupabaseServerClient()
 
-  const buildRequest = (selectClause: RecipesSelectClause) => {
+  const buildRequest = (selectClause: string) => {
     let request = supabase
       .from('recipes')
-      .select(selectClause)
+      .select(selectClause as string)
       .eq('status', 'published')
       .order('created_at', { ascending: false })
 
@@ -72,7 +83,7 @@ export async function searchRecipes(query?: string) {
   }
 
   if (error) throw new Error(error.message)
-  return data ?? []
+  return (data ?? []) as RecipeRecord[]
 }
 
 const recipeDetailSelectWithCategories = `
@@ -113,7 +124,7 @@ const recipeDetailSelectWithCategories = `
       name
     )
   )
-` as const
+`
 
 const recipeDetailSelectWithoutCategories = `
   id,
@@ -146,19 +157,17 @@ const recipeDetailSelectWithoutCategories = `
       category
     )
   )
-` as const
+`
 
-type RecipeDetailSelectClause =
-  | typeof recipeDetailSelectWithCategories
-  | typeof recipeDetailSelectWithoutCategories
-
-export async function getRecipeBySlug(slug: string) {
+export async function getRecipeBySlug(
+  slug: string
+): Promise<RecipeRecord | null> {
   const supabase = await createSupabaseServerClient()
 
-  const buildRequest = (selectClause: RecipeDetailSelectClause) =>
+  const buildRequest = (selectClause: string) =>
     supabase
       .from('recipes')
-      .select(selectClause)
+      .select(selectClause as string)
       .eq('status', 'published')
       .eq('slug', slug)
       .order('position', { foreignTable: 'recipe_ingredients', ascending: true })
@@ -176,7 +185,7 @@ export async function getRecipeBySlug(slug: string) {
   }
 
   if (error) throw new Error(error.message)
-  return data
+  return (data ?? null) as RecipeRecord | null
 }
 
 const recipeEditSelectWithCategories = `
@@ -217,7 +226,7 @@ const recipeEditSelectWithCategories = `
       name
     )
   )
-` as const
+`
 
 const recipeEditSelectWithoutCategories = `
   id,
@@ -250,13 +259,11 @@ const recipeEditSelectWithoutCategories = `
       category
     )
   )
-` as const
+`
 
-type RecipeEditSelectClause =
-  | typeof recipeEditSelectWithCategories
-  | typeof recipeEditSelectWithoutCategories
-
-export async function getRecipeForEditBySlug(slug: string) {
+export async function getRecipeForEditBySlug(
+  slug: string
+): Promise<RecipeRecord | null> {
   const hasServiceRole =
     Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL) &&
     Boolean(process.env.SUPABASE_SERVICE_ROLE_KEY)
@@ -264,10 +271,10 @@ export async function getRecipeForEditBySlug(slug: string) {
     ? createSupabaseAdminClient()
     : await createSupabaseServerClient()
 
-  const buildRequest = (selectClause: RecipeEditSelectClause) =>
+  const buildRequest = (selectClause: string) =>
     supabase
       .from('recipes')
-      .select(selectClause)
+      .select(selectClause as string)
       .eq('slug', slug)
       .order('position', { foreignTable: 'recipe_ingredients', ascending: true })
       .order('position', {
@@ -284,5 +291,5 @@ export async function getRecipeForEditBySlug(slug: string) {
   }
 
   if (error) throw new Error(error.message)
-  return data
+  return (data ?? null) as RecipeRecord | null
 }
