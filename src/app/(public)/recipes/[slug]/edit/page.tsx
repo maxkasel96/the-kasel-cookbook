@@ -51,7 +51,7 @@ export default async function RecipeEditPage({ params }: RecipeEditPageProps) {
     <RecipeEditForm
       recipe={{
         id: String(recipe.id),
-        slug: recipe.slug,
+        slug: recipe.slug ?? "",
         title: recipe.title,
         description: recipe.description,
         prepMinutes: recipe.prep_minutes ?? null,
