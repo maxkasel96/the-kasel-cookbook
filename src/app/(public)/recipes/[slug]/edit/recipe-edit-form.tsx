@@ -23,6 +23,11 @@ type TagOption = {
   category?: string | null;
 };
 
+type CategoryOption = {
+  id: string;
+  name: string;
+};
+
 type RecipeEditFormProps = {
   recipe: {
     id: string;
@@ -35,6 +40,7 @@ type RecipeEditFormProps = {
     ingredients: Ingredient[];
     steps: InstructionStep[];
     tags: TagOption[];
+    categories: CategoryOption[];
   };
 };
 
@@ -75,6 +81,7 @@ export default function RecipeEditForm({ recipe }: RecipeEditFormProps) {
   const [description, setDescription] = useState(recipe.description ?? "");
   const [isSaving, setIsSaving] = useState(false);
   const [isLoadingTags, setIsLoadingTags] = useState(false);
+  const [isLoadingCategories, setIsLoadingCategories] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
   const [formStatus, setFormStatus] = useState<string | null>(null);
   const [currentSlug, setCurrentSlug] = useState(recipe.slug);
@@ -89,6 +96,11 @@ export default function RecipeEditForm({ recipe }: RecipeEditFormProps) {
     recipe.tags ?? []
   );
   const [newTagName, setNewTagName] = useState("");
+  const [availableCategories, setAvailableCategories] = useState<CategoryOption[]>([]);
+  const [selectedCategories, setSelectedCategories] = useState<CategoryOption[]>(
+    recipe.categories ?? []
+  );
+  const [newCategoryName, setNewCategoryName] = useState("");
 
   const ingredientCount = useMemo(
     () => ingredients.filter((ingredient) => ingredient.ingredientText.trim()).length,
@@ -133,25 +145,63 @@ export default function RecipeEditForm({ recipe }: RecipeEditFormProps) {
       }
     };
 
+    const fetchCategories = async () => {
+      setIsLoadingCategories(true);
+
+      try {
+        const response = await fetch("/api/admin/categories");
+        if (!response.ok) {
+          throw new Error("Unable to load categories.");
+        }
+        const payload = (await response.json()) as {
+          categories?: CategoryOption[];
+        };
+        if (isMounted) {
+          const fetched = payload.categories ?? [];
+          setAvailableCategories(
+            fetched.concat(
+              recipe.categories.filter(
+                (category) =>
+                  !fetched.some(
+                    (item) =>
+                      item.name.trim().toLowerCase() ===
+                      category.name.trim().toLowerCase()
+                  )
+              )
+            )
+          );
+        }
+      } catch {
+        if (isMounted) {
+          setAvailableCategories(recipe.categories);
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoadingCategories(false);
+        }
+      }
+    };
+
     fetchTags();
+    fetchCategories();
 
     return () => {
       isMounted = false;
     };
-  }, [recipe.tags]);
+  }, [recipe.tags, recipe.categories]);
 
-  const normalizeTag = (name: string) => name.trim().toLowerCase();
+  const normalizeLabel = (name: string) => name.trim().toLowerCase();
 
   const toggleTag = (tag: TagOption) => {
     setSelectedTags((prev) => {
       const isSelected = prev.some(
-        (selected) => normalizeTag(selected.name) === normalizeTag(tag.name)
+        (selected) => normalizeLabel(selected.name) === normalizeLabel(tag.name)
       );
 
       if (isSelected) {
         return prev.filter(
           (selected) =>
-            normalizeTag(selected.name) !== normalizeTag(tag.name)
+            normalizeLabel(selected.name) !== normalizeLabel(tag.name)
         );
       }
 
@@ -164,7 +214,7 @@ export default function RecipeEditForm({ recipe }: RecipeEditFormProps) {
     if (!trimmed) return;
 
     const existing = availableTags.find(
-      (tag) => normalizeTag(tag.name) === normalizeTag(trimmed)
+      (tag) => normalizeLabel(tag.name) === normalizeLabel(trimmed)
     );
 
     const tagToAdd =
@@ -176,7 +226,7 @@ export default function RecipeEditForm({ recipe }: RecipeEditFormProps) {
     setAvailableTags((prev) => (existing ? prev : [...prev, tagToAdd]));
     setSelectedTags((prev) => {
       const isSelected = prev.some(
-        (tag) => normalizeTag(tag.name) === normalizeTag(tagToAdd.name)
+        (tag) => normalizeLabel(tag.name) === normalizeLabel(tagToAdd.name)
       );
       return isSelected ? prev : [...prev, tagToAdd];
     });
@@ -186,7 +236,62 @@ export default function RecipeEditForm({ recipe }: RecipeEditFormProps) {
   const removeSelectedTag = (tagToRemove: TagOption) => {
     setSelectedTags((prev) =>
       prev.filter(
-        (tag) => normalizeTag(tag.name) !== normalizeTag(tagToRemove.name)
+        (tag) => normalizeLabel(tag.name) !== normalizeLabel(tagToRemove.name)
+      )
+    );
+  };
+
+  const toggleCategory = (category: CategoryOption) => {
+    setSelectedCategories((prev) => {
+      const isSelected = prev.some(
+        (selected) =>
+          normalizeLabel(selected.name) === normalizeLabel(category.name)
+      );
+
+      if (isSelected) {
+        return prev.filter(
+          (selected) =>
+            normalizeLabel(selected.name) !== normalizeLabel(category.name)
+        );
+      }
+
+      return [...prev, category];
+    });
+  };
+
+  const addNewCategory = () => {
+    const trimmed = newCategoryName.trim();
+    if (!trimmed) return;
+
+    const existing = availableCategories.find(
+      (category) => normalizeLabel(category.name) === normalizeLabel(trimmed)
+    );
+
+    const categoryToAdd =
+      existing ?? {
+        id: `new-${createId()}`,
+        name: trimmed,
+      };
+
+    setAvailableCategories((prev) =>
+      existing ? prev : [...prev, categoryToAdd]
+    );
+    setSelectedCategories((prev) => {
+      const isSelected = prev.some(
+        (category) =>
+          normalizeLabel(category.name) === normalizeLabel(categoryToAdd.name)
+      );
+      return isSelected ? prev : [...prev, categoryToAdd];
+    });
+    setNewCategoryName("");
+  };
+
+  const removeSelectedCategory = (categoryToRemove: CategoryOption) => {
+    setSelectedCategories((prev) =>
+      prev.filter(
+        (category) =>
+          normalizeLabel(category.name) !==
+          normalizeLabel(categoryToRemove.name)
       )
     );
   };
@@ -263,6 +368,7 @@ export default function RecipeEditForm({ recipe }: RecipeEditFormProps) {
       servings: parseOptionalNumber(servings),
       status,
       tags: selectedTags.map((tag) => tag.name),
+      categories: selectedCategories.map((category) => category.name),
       ingredients: ingredients
         .map((ingredient) => ({
           ingredientText: ingredient.ingredientText.trim(),
@@ -402,87 +508,172 @@ export default function RecipeEditForm({ recipe }: RecipeEditFormProps) {
             </label>
             <div className="flex flex-col gap-4 rounded-3xl border border-border bg-surface-2 p-6">
               <div className="flex flex-col gap-2">
-                <h3 className="text-base font-semibold">Tags</h3>
+                <h3 className="text-base font-semibold">Tags & categories</h3>
                 <p className="text-sm text-text-muted">
-                  Select from existing tags or add a new tag to categorize this
-                  recipe.
+                  Select from existing tags and categories or add new ones to
+                  organize this recipe.
                 </p>
               </div>
-              <div className="rounded-2xl border border-border bg-surface px-4 py-3">
-                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-text-muted">
-                  Existing tags
-                </p>
-                {isLoadingTags ? (
-                  <p className="mt-3 text-sm text-text-muted">Loading tags...</p>
-                ) : availableTags.length ? (
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    {availableTags.map((tag) => {
-                      const isSelected = selectedTags.some(
-                        (selected) =>
-                          normalizeTag(selected.name) === normalizeTag(tag.name)
-                      );
-                      return (
-                        <button
-                          key={tag.id}
-                          className={`rounded-full border px-4 py-1 text-sm font-semibold transition ${
-                            isSelected
-                              ? "border-accent bg-accent/10 text-accent"
-                              : "border-border-strong text-foreground hover:border-accent-2 hover:text-accent-2"
-                          }`}
-                          type="button"
-                          onClick={() => toggleTag(tag)}
-                        >
-                          {tag.name}
-                        </button>
-                      );
-                    })}
+              <div className="grid gap-6 lg:grid-cols-2">
+                <div className="flex flex-col gap-4">
+                  <div className="rounded-2xl border border-border bg-surface px-4 py-3">
+                    <p className="text-xs font-semibold uppercase tracking-[0.2em] text-text-muted">
+                      Existing tags
+                    </p>
+                    {isLoadingTags ? (
+                      <p className="mt-3 text-sm text-text-muted">Loading tags...</p>
+                    ) : availableTags.length ? (
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        {availableTags.map((tag) => {
+                          const isSelected = selectedTags.some(
+                            (selected) =>
+                              normalizeLabel(selected.name) === normalizeLabel(tag.name)
+                          );
+                          return (
+                            <button
+                              key={tag.id}
+                              className={`rounded-full border px-4 py-1 text-sm font-semibold transition ${
+                                isSelected
+                                  ? "border-accent bg-accent/10 text-accent"
+                                  : "border-border-strong text-foreground hover:border-accent-2 hover:text-accent-2"
+                              }`}
+                              type="button"
+                              onClick={() => toggleTag(tag)}
+                            >
+                              {tag.name}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <p className="mt-3 text-sm text-text-muted">
+                        No existing tags found.
+                      </p>
+                    )}
                   </div>
-                ) : (
-                  <p className="mt-3 text-sm text-text-muted">
-                    No existing tags found.
-                  </p>
-                )}
-              </div>
-              <label className="flex flex-col gap-2 text-sm font-medium">
-                Add a new tag
-                <div className="flex flex-wrap gap-3">
-                  <input
-                    className="h-11 flex-1 rounded-2xl border border-border bg-surface px-4 text-base text-foreground focus:border-focus focus:outline-none focus:ring-2 focus:ring-focus/40"
-                    placeholder="Seasonal"
-                    value={newTagName}
-                    onChange={(event) => setNewTagName(event.target.value)}
-                  />
-                  <button
-                    className="rounded-full border border-border-strong px-4 py-2 text-sm font-semibold text-foreground transition hover:border-accent-2 hover:text-accent-2"
-                    type="button"
-                    onClick={addNewTag}
-                  >
-                    Add new tag
-                  </button>
-                </div>
-              </label>
-              <div className="flex flex-col gap-2">
-                <p className="text-sm font-semibold text-text-muted">
-                  Selected tags
-                </p>
-                {selectedTags.length ? (
-                  <div className="flex flex-wrap gap-2">
-                    {selectedTags.map((tag) => (
+                  <label className="flex flex-col gap-2 text-sm font-medium">
+                    Add a new tag
+                    <div className="flex flex-wrap gap-3">
+                      <input
+                        className="h-11 flex-1 rounded-2xl border border-border bg-surface px-4 text-base text-foreground focus:border-focus focus:outline-none focus:ring-2 focus:ring-focus/40"
+                        placeholder="Seasonal"
+                        value={newTagName}
+                        onChange={(event) => setNewTagName(event.target.value)}
+                      />
                       <button
-                        key={tag.id}
-                        className="rounded-full border border-border-strong px-4 py-1 text-sm font-semibold text-foreground transition hover:border-danger hover:text-danger"
+                        className="rounded-full border border-border-strong px-4 py-2 text-sm font-semibold text-foreground transition hover:border-accent-2 hover:text-accent-2"
                         type="button"
-                        onClick={() => removeSelectedTag(tag)}
+                        onClick={addNewTag}
                       >
-                        {tag.name} ×
+                        Add new tag
                       </button>
-                    ))}
+                    </div>
+                  </label>
+                  <div className="flex flex-col gap-2">
+                    <p className="text-sm font-semibold text-text-muted">
+                      Selected tags
+                    </p>
+                    {selectedTags.length ? (
+                      <div className="flex flex-wrap gap-2">
+                        {selectedTags.map((tag) => (
+                          <button
+                            key={tag.id}
+                            className="rounded-full border border-border-strong px-4 py-1 text-sm font-semibold text-foreground transition hover:border-danger hover:text-danger"
+                            type="button"
+                            onClick={() => removeSelectedTag(tag)}
+                          >
+                            {tag.name} ×
+                          </button>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-sm text-text-muted">
+                        No tags selected yet.
+                      </p>
+                    )}
                   </div>
-                ) : (
-                  <p className="text-sm text-text-muted">
-                    No tags selected yet.
-                  </p>
-                )}
+                </div>
+                <div className="flex flex-col gap-4">
+                  <div className="rounded-2xl border border-border bg-surface px-4 py-3">
+                    <p className="text-xs font-semibold uppercase tracking-[0.2em] text-text-muted">
+                      Existing categories
+                    </p>
+                    {isLoadingCategories ? (
+                      <p className="mt-3 text-sm text-text-muted">
+                        Loading categories...
+                      </p>
+                    ) : availableCategories.length ? (
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        {availableCategories.map((category) => {
+                          const isSelected = selectedCategories.some(
+                            (selected) =>
+                              normalizeLabel(selected.name) ===
+                              normalizeLabel(category.name)
+                          );
+                          return (
+                            <button
+                              key={category.id}
+                              className={`rounded-full border px-4 py-1 text-sm font-semibold transition ${
+                                isSelected
+                                  ? "border-accent bg-accent/10 text-accent"
+                                  : "border-border-strong text-foreground hover:border-accent-2 hover:text-accent-2"
+                              }`}
+                              type="button"
+                              onClick={() => toggleCategory(category)}
+                            >
+                              {category.name}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <p className="mt-3 text-sm text-text-muted">
+                        No existing categories found.
+                      </p>
+                    )}
+                  </div>
+                  <label className="flex flex-col gap-2 text-sm font-medium">
+                    Add a new category
+                    <div className="flex flex-wrap gap-3">
+                      <input
+                        className="h-11 flex-1 rounded-2xl border border-border bg-surface px-4 text-base text-foreground focus:border-focus focus:outline-none focus:ring-2 focus:ring-focus/40"
+                        placeholder="Dinner"
+                        value={newCategoryName}
+                        onChange={(event) => setNewCategoryName(event.target.value)}
+                      />
+                      <button
+                        className="rounded-full border border-border-strong px-4 py-2 text-sm font-semibold text-foreground transition hover:border-accent-2 hover:text-accent-2"
+                        type="button"
+                        onClick={addNewCategory}
+                      >
+                        Add new category
+                      </button>
+                    </div>
+                  </label>
+                  <div className="flex flex-col gap-2">
+                    <p className="text-sm font-semibold text-text-muted">
+                      Selected categories
+                    </p>
+                    {selectedCategories.length ? (
+                      <div className="flex flex-wrap gap-2">
+                        {selectedCategories.map((category) => (
+                          <button
+                            key={category.id}
+                            className="rounded-full border border-border-strong px-4 py-1 text-sm font-semibold text-foreground transition hover:border-danger hover:text-danger"
+                            type="button"
+                            onClick={() => removeSelectedCategory(category)}
+                          >
+                            {category.name} ×
+                          </button>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-sm text-text-muted">
+                        No categories selected yet.
+                      </p>
+                    )}
+                  </div>
+                </div>
               </div>
             </div>
           </section>
