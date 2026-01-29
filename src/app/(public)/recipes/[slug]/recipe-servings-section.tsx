@@ -20,7 +20,7 @@ type InstructionIngredientLink = {
 
 type InstructionStep = {
   id: number | string
-  content: string
+  content?: string | null
   recipe_instruction_step_ingredients?: InstructionIngredientLink[] | null
 }
 
@@ -109,7 +109,7 @@ export default function RecipeServingsSection({
           </h2>
           {steps.length ? (
             <ol className="mt-4 list-decimal space-y-4 pl-6 text-sm text-foreground">
-              {steps.map((step) => {
+              {steps.map((step, index) => {
                 const assignedIngredients = (
                   step.recipe_instruction_step_ingredients ?? []
                 )
@@ -121,8 +121,8 @@ export default function RecipeServingsSection({
                   )
 
                 return (
-                  <li key={step.id} className="leading-relaxed">
-                    <span>{step.content}</span>
+                  <li key={step.id ?? index} className="leading-relaxed">
+                    <span>{step.content ?? ''}</span>
                     {assignedIngredients.length ? (
                       <p className="mt-1 text-xs italic text-muted-foreground">
                         {assignedIngredients.join(', ')}
