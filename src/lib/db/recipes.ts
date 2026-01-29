@@ -18,7 +18,7 @@ const recipesSelectWithCategories = `
       name
     )
   )
-`
+` as const
 
 const recipesSelectWithoutCategories = `
   *,
@@ -30,7 +30,11 @@ const recipesSelectWithoutCategories = `
       category
     )
   )
-`
+` as const
+
+type RecipesSelectClause =
+  | typeof recipesSelectWithCategories
+  | typeof recipesSelectWithoutCategories
 
 const isMissingCategoryRelation = (message?: string) => {
   if (!message) return false
@@ -46,7 +50,7 @@ const isMissingCategoryRelation = (message?: string) => {
 export async function searchRecipes(query?: string) {
   const supabase = await createSupabaseServerClient()
 
-  const buildRequest = (selectClause: string) => {
+  const buildRequest = (selectClause: RecipesSelectClause) => {
     let request = supabase
       .from('recipes')
       .select(selectClause)
@@ -109,7 +113,7 @@ const recipeDetailSelectWithCategories = `
       name
     )
   )
-`
+` as const
 
 const recipeDetailSelectWithoutCategories = `
   id,
@@ -142,12 +146,16 @@ const recipeDetailSelectWithoutCategories = `
       category
     )
   )
-`
+` as const
+
+type RecipeDetailSelectClause =
+  | typeof recipeDetailSelectWithCategories
+  | typeof recipeDetailSelectWithoutCategories
 
 export async function getRecipeBySlug(slug: string) {
   const supabase = await createSupabaseServerClient()
 
-  const buildRequest = (selectClause: string) =>
+  const buildRequest = (selectClause: RecipeDetailSelectClause) =>
     supabase
       .from('recipes')
       .select(selectClause)
@@ -209,7 +217,7 @@ const recipeEditSelectWithCategories = `
       name
     )
   )
-`
+` as const
 
 const recipeEditSelectWithoutCategories = `
   id,
@@ -242,7 +250,11 @@ const recipeEditSelectWithoutCategories = `
       category
     )
   )
-`
+` as const
+
+type RecipeEditSelectClause =
+  | typeof recipeEditSelectWithCategories
+  | typeof recipeEditSelectWithoutCategories
 
 export async function getRecipeForEditBySlug(slug: string) {
   const hasServiceRole =
@@ -252,7 +264,7 @@ export async function getRecipeForEditBySlug(slug: string) {
     ? createSupabaseAdminClient()
     : await createSupabaseServerClient()
 
-  const buildRequest = (selectClause: string) =>
+  const buildRequest = (selectClause: RecipeEditSelectClause) =>
     supabase
       .from('recipes')
       .select(selectClause)
