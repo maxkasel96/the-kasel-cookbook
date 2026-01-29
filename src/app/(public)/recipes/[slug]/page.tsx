@@ -176,8 +176,9 @@ export default async function RecipeDetailPage({
                     .map((link: any) =>
                       ingredientLookup.get(String(link.ingredient_id))
                     )
-                    .filter((ingredient): ingredient is string =>
-                      Boolean(ingredient)
+                    .filter(
+                      (ingredient: string | undefined): ingredient is string =>
+                        Boolean(ingredient)
                     )
 
                   return (
