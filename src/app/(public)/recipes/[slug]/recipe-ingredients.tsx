@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+type ScaledQuantityFormatter = (quantity: number | null) => string | null
 
 type RecipeIngredient = {
   id: number | string
@@ -14,40 +14,20 @@ type RecipeIngredient = {
 type RecipeIngredientsProps = {
   ingredients: RecipeIngredient[]
   initialServings: number | null
-}
-
-const formatQuantity = (value: number) => {
-  const rounded = Math.round((value + Number.EPSILON) * 100) / 100
-  return rounded.toFixed(2).replace(/\.?0+$/, '')
+  servingsInput: string
+  isValidServings: boolean
+  onServingsChange: (value: string) => void
+  getScaledQuantity: ScaledQuantityFormatter
 }
 
 export function RecipeIngredients({
   ingredients,
   initialServings,
+  servingsInput,
+  isValidServings,
+  onServingsChange,
+  getScaledQuantity,
 }: RecipeIngredientsProps) {
-  const [servingsInput, setServingsInput] = useState(
-    initialServings ? String(initialServings) : ''
-  )
-
-  const { ratio, isValidServings } = useMemo(() => {
-    const parsed = Number(servingsInput)
-    const valid = Number.isFinite(parsed) && parsed > 0
-    if (!valid || !initialServings || initialServings <= 0) {
-      return { ratio: null, isValidServings: valid }
-    }
-    return { ratio: parsed / initialServings, isValidServings: true }
-  }, [initialServings, servingsInput])
-
-  const getScaledQuantity = (quantity: number | null) => {
-    if (quantity === null || !Number.isFinite(quantity)) {
-      return null
-    }
-    if (!ratio) {
-      return formatQuantity(quantity)
-    }
-    return formatQuantity(quantity * ratio)
-  }
-
   return (
     <div className="rounded-2xl border border-muted/60 bg-muted/10 p-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -67,7 +47,7 @@ export function RecipeIngredients({
               step={0.25}
               type="number"
               value={servingsInput}
-              onChange={(event) => setServingsInput(event.target.value)}
+              onChange={(event) => onServingsChange(event.target.value)}
             />
             <span className="text-xs text-muted-foreground">
               Base: {initialServings}
