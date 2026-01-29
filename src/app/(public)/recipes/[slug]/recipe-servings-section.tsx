@@ -19,7 +19,7 @@ type InstructionIngredientLink = {
 }
 
 type InstructionStep = {
-  id: number | string
+  id?: number | string
   content?: string | null
   recipe_instruction_step_ingredients?: InstructionIngredientLink[] | null
 }
