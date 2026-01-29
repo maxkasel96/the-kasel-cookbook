@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 
 import MealAssignment from './MealAssignment'
 import { RecipeIngredients } from './recipe-ingredients'
@@ -65,15 +65,18 @@ export default function RecipeServingsSection({
     return { ratio: parsed / initialServings, isValidServings: true }
   }, [initialServings, servingsInput])
 
-  const getScaledQuantity = (quantity: number | null) => {
-    if (quantity === null || !Number.isFinite(quantity)) {
-      return null
-    }
-    if (!ratio) {
-      return formatQuantity(quantity)
-    }
-    return formatQuantity(quantity * ratio)
-  }
+  const getScaledQuantity = useCallback(
+    (quantity: number | null) => {
+      if (quantity === null || !Number.isFinite(quantity)) {
+        return null
+      }
+      if (!ratio) {
+        return formatQuantity(quantity)
+      }
+      return formatQuantity(quantity * ratio)
+    },
+    [ratio]
+  )
 
   const ingredientLookup = useMemo(() => {
     return new Map(
@@ -86,7 +89,7 @@ export default function RecipeServingsSection({
         return [String(ingredient.id), label]
       })
     )
-  }, [ingredients, ratio])
+  }, [getScaledQuantity, ingredients])
 
   return (
     <section className="grid gap-8 md:grid-cols-[minmax(0,1fr)_minmax(0,1.3fr)]">
