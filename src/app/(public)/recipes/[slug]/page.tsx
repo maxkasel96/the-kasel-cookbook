@@ -32,6 +32,20 @@ export default async function RecipeDetailPage({
       })
       .filter(Boolean) ?? []
 
+  const categoryList =
+    recipe.recipe_categories
+      ?.flatMap((categoryLink: any) => {
+        if (Array.isArray(categoryLink?.categories)) {
+          return categoryLink.categories
+            .map((category: any) => category?.name)
+            .filter(Boolean)
+        }
+        return categoryLink?.categories?.name
+          ? [categoryLink.categories.name]
+          : []
+      })
+      .filter(Boolean) ?? []
+
   const detailItems = [
     recipe.prep_minutes
       ? { label: 'Prep time', value: `${recipe.prep_minutes} min` }
@@ -65,6 +79,7 @@ export default async function RecipeDetailPage({
               title: recipe.title,
               description: recipe.description,
               recipe_tags: recipe.recipe_tags,
+              recipe_categories: recipe.recipe_categories,
             }}
           />
         </div>
@@ -84,22 +99,42 @@ export default async function RecipeDetailPage({
             Prep, cook, and serving details have not been added yet.
           </p>
         )}
-        {tagList.length ? (
-          <div className="flex flex-wrap gap-2">
-            {tagList.map((tag: string) => (
-              <span
-                key={tag}
-                className="rounded-full border border-muted/60 bg-muted/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground"
-              >
-                {tag}
+        <div className="space-y-2 text-xs text-muted-foreground">
+          {categoryList.length ? (
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+                Categories
               </span>
-            ))}
-          </div>
-        ) : (
-          <p className="text-xs text-muted-foreground">
-            No tags have been associated with this recipe.
-          </p>
-        )}
+              {categoryList.map((category: string) => (
+                <span
+                  key={category}
+                  className="rounded-full border border-muted/60 bg-muted/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground"
+                >
+                  {category}
+                </span>
+              ))}
+            </div>
+          ) : (
+            <p>No categories have been associated with this recipe.</p>
+          )}
+          {tagList.length ? (
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+                Tags
+              </span>
+              {tagList.map((tag: string) => (
+                <span
+                  key={tag}
+                  className="rounded-full border border-muted/60 bg-muted/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground"
+                >
+                  {tag}
+                </span>
+              ))}
+            </div>
+          ) : (
+            <p>No tags have been associated with this recipe.</p>
+          )}
+        </div>
       </header>
 
       <section className="grid gap-8 md:grid-cols-[minmax(0,1fr)_minmax(0,1.3fr)]">

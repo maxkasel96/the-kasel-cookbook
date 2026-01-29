@@ -38,6 +38,17 @@ export default async function RecipeEditPage({ params }: RecipeEditPageProps) {
     }))
     .filter((tag: { name: string }) => tag.name);
 
+  const categories = (recipe.recipe_categories ?? [])
+    .map((categoryLink: any) => ({
+      id: String(
+        categoryLink.categories?.id ??
+          categoryLink.category_id ??
+          categoryLink.id
+      ),
+      name: categoryLink.categories?.name ?? "",
+    }))
+    .filter((category: { name: string }) => category.name);
+
   return (
     <RecipeEditForm
       recipe={{
@@ -51,6 +62,7 @@ export default async function RecipeEditPage({ params }: RecipeEditPageProps) {
         ingredients,
         steps,
         tags,
+        categories,
       }}
     />
   );

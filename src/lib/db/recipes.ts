@@ -16,6 +16,13 @@ export async function searchRecipes(query?: string) {
             name,
             category
           )
+        ),
+        recipe_categories (
+          category_id,
+          categories (
+            id,
+            name
+          )
         )
       `
     )
@@ -66,6 +73,13 @@ export async function getRecipeBySlug(slug: string) {
             id,
             name,
             category
+          )
+        ),
+        recipe_categories (
+          category_id,
+          categories (
+            id,
+            name
           )
         )
       `
@@ -123,6 +137,13 @@ export async function getRecipeForEditBySlug(slug: string) {
             id,
             name,
             category
+          )
+        ),
+        recipe_categories (
+          category_id,
+          categories (
+            id,
+            name
           )
         )
       `

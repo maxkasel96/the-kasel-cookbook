@@ -19,6 +19,7 @@ type RecipePayload = {
   status?: "draft" | "published";
   isDeleted?: boolean;
   tags?: string[];
+  categories?: string[];
   ingredients: RecipeIngredientPayload[];
   steps: string[];
 };
@@ -192,6 +193,80 @@ export async function POST(request: Request) {
         await supabase.from("recipes").delete().eq("id", recipe.id);
         return NextResponse.json(
           { error: tagLinkError.message },
+          { status: 500 }
+        );
+      }
+    }
+
+    const categoryNames = (body.categories ?? [])
+      .map((category) => category.trim())
+      .filter(Boolean);
+    const uniqueCategoryMap = new Map(
+      categoryNames.map((category) => [category.toLowerCase(), category])
+    );
+    const uniqueCategories = Array.from(uniqueCategoryMap.values());
+
+    if (uniqueCategories.length > 0) {
+      const { data: existingCategories, error: existingCategoriesError } =
+        await supabase
+          .from("categories")
+          .select("id, name")
+          .in("name", uniqueCategories);
+
+      if (existingCategoriesError) {
+        await supabase.from("recipes").delete().eq("id", recipe.id);
+        return NextResponse.json(
+          { error: existingCategoriesError.message },
+          { status: 500 }
+        );
+      }
+
+      const existingNames = new Set(
+        (existingCategories ?? []).map((category) =>
+          category.name.toLowerCase()
+        )
+      );
+      const newCategories = uniqueCategories.filter(
+        (category) => !existingNames.has(category.toLowerCase())
+      );
+
+      let insertedCategories: { id: string; name: string }[] = [];
+      if (newCategories.length > 0) {
+        const { data: createdCategories, error: createCategoriesError } =
+          await supabase
+            .from("categories")
+            .insert(newCategories.map((name) => ({ name })))
+            .select("id, name");
+
+        if (createCategoriesError) {
+          await supabase.from("recipes").delete().eq("id", recipe.id);
+          return NextResponse.json(
+            { error: createCategoriesError.message },
+            { status: 500 }
+          );
+        }
+
+        insertedCategories = createdCategories ?? [];
+      }
+
+      const allCategories = [
+        ...(existingCategories ?? []),
+        ...insertedCategories,
+      ];
+
+      const { error: categoryLinkError } = await supabase
+        .from("recipe_categories")
+        .insert(
+          allCategories.map((category) => ({
+            recipe_id: recipe.id,
+            category_id: category.id,
+          }))
+        );
+
+      if (categoryLinkError) {
+        await supabase.from("recipes").delete().eq("id", recipe.id);
+        return NextResponse.json(
+          { error: categoryLinkError.message },
           { status: 500 }
         );
       }
