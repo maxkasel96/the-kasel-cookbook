@@ -10,6 +10,11 @@ type RecipeIngredientPayload = {
   isOptional: boolean;
 };
 
+type RecipeInstructionPayload = {
+  content: string;
+  ingredientPositions?: number[];
+};
+
 type RecipePayload = {
   title: string;
   description?: string;
@@ -21,7 +26,7 @@ type RecipePayload = {
   tags?: string[];
   categories?: string[];
   ingredients: RecipeIngredientPayload[];
-  steps: string[];
+  steps: RecipeInstructionPayload[];
 };
 
 const slugify = (value: string) =>
@@ -104,9 +109,10 @@ export async function POST(request: Request) {
       };
     });
 
-    const { error: ingredientError } = await supabase
+    const { data: insertedIngredients, error: ingredientError } = await supabase
       .from("recipe_ingredients")
-      .insert(ingredientRows);
+      .insert(ingredientRows)
+      .select("id, position");
 
     if (ingredientError) {
       await supabase.from("recipes").delete().eq("id", recipe.id);
@@ -116,19 +122,57 @@ export async function POST(request: Request) {
       );
     }
 
-    const stepRows = body.steps.map((content, index) => ({
+    const ingredientPositionMap = new Map(
+      (insertedIngredients ?? []).map((ingredient) => [
+        ingredient.position,
+        ingredient.id,
+      ])
+    );
+
+    const stepRows = body.steps.map((step, index) => ({
       recipe_id: recipe.id,
       position: index + 1,
-      content,
+      content: step.content,
     }));
 
-    const { error: stepError } = await supabase
+    const { data: insertedSteps, error: stepError } = await supabase
       .from("recipe_instruction_steps")
-      .insert(stepRows);
+      .insert(stepRows)
+      .select("id, position");
 
     if (stepError) {
       await supabase.from("recipes").delete().eq("id", recipe.id);
       return NextResponse.json({ error: stepError.message }, { status: 500 });
+    }
+
+    const stepPositionMap = new Map(
+      (insertedSteps ?? []).map((step) => [step.position, step.id])
+    );
+    const stepIngredientRows = body.steps.flatMap((step, index) => {
+      const stepId = stepPositionMap.get(index + 1);
+      if (!stepId) return [];
+      const ingredientIds = (step.ingredientPositions ?? [])
+        .map((position) => ingredientPositionMap.get(position))
+        .filter((id): id is string => Boolean(id));
+      const uniqueIngredientIds = Array.from(new Set(ingredientIds));
+      return uniqueIngredientIds.map((ingredientId) => ({
+        step_id: stepId,
+        ingredient_id: ingredientId,
+      }));
+    });
+
+    if (stepIngredientRows.length > 0) {
+      const { error: stepIngredientError } = await supabase
+        .from("recipe_instruction_step_ingredients")
+        .insert(stepIngredientRows);
+
+      if (stepIngredientError) {
+        await supabase.from("recipes").delete().eq("id", recipe.id);
+        return NextResponse.json(
+          { error: stepIngredientError.message },
+          { status: 500 }
+        );
+      }
     }
 
     const tagNames = (body.tags ?? [])

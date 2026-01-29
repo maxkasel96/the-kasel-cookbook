@@ -94,7 +94,52 @@ export async function getRecipeBySlug(slug: string) {
     .maybeSingle()
 
   if (error) throw new Error(error.message)
-  return data
+  if (!data) return data
+
+  const stepIds = (data.recipe_instruction_steps ?? [])
+    .map((step: { id?: string }) => step.id)
+    .filter(Boolean)
+
+  if (!stepIds.length) {
+    return data
+  }
+
+  const {
+    data: stepIngredientLinks,
+    error: stepIngredientError,
+  } = await supabase
+    .from('recipe_instruction_step_ingredients')
+    .select('step_id, ingredient_id')
+    .in('step_id', stepIds as string[])
+
+  if (stepIngredientError) {
+    console.warn(
+      'Failed to load recipe instruction step ingredients',
+      stepIngredientError.message
+    )
+    return data
+  }
+
+  const linksByStepId = new Map<string, { ingredient_id: string }[]>()
+  stepIngredientLinks?.forEach((link) => {
+    const stepId = String(link.step_id)
+    const existing = linksByStepId.get(stepId) ?? []
+    linksByStepId.set(stepId, [
+      ...existing,
+      { ingredient_id: String(link.ingredient_id) },
+    ])
+  })
+
+  return {
+    ...data,
+    recipe_instruction_steps: (data.recipe_instruction_steps ?? []).map(
+      (step: { id?: string }) => ({
+        ...step,
+        recipe_instruction_step_ingredients:
+          linksByStepId.get(String(step.id)) ?? [],
+      })
+    ),
+  }
 }
 
 export async function getRecipeForEditBySlug(slug: string) {
@@ -157,5 +202,50 @@ export async function getRecipeForEditBySlug(slug: string) {
     .maybeSingle()
 
   if (error) throw new Error(error.message)
-  return data
+  if (!data) return data
+
+  const stepIds = (data.recipe_instruction_steps ?? [])
+    .map((step: { id?: string }) => step.id)
+    .filter(Boolean)
+
+  if (!stepIds.length) {
+    return data
+  }
+
+  const {
+    data: stepIngredientLinks,
+    error: stepIngredientError,
+  } = await supabase
+    .from('recipe_instruction_step_ingredients')
+    .select('step_id, ingredient_id')
+    .in('step_id', stepIds as string[])
+
+  if (stepIngredientError) {
+    console.warn(
+      'Failed to load recipe instruction step ingredients',
+      stepIngredientError.message
+    )
+    return data
+  }
+
+  const linksByStepId = new Map<string, { ingredient_id: string }[]>()
+  stepIngredientLinks?.forEach((link) => {
+    const stepId = String(link.step_id)
+    const existing = linksByStepId.get(stepId) ?? []
+    linksByStepId.set(stepId, [
+      ...existing,
+      { ingredient_id: String(link.ingredient_id) },
+    ])
+  })
+
+  return {
+    ...data,
+    recipe_instruction_steps: (data.recipe_instruction_steps ?? []).map(
+      (step: { id?: string }) => ({
+        ...step,
+        recipe_instruction_step_ingredients:
+          linksByStepId.get(String(step.id)) ?? [],
+      })
+    ),
+  }
 }
