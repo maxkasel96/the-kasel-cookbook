@@ -466,8 +466,8 @@ export default function AdminCreateRecipePage() {
           <h1 className="text-4xl font-semibold text-foreground">Create recipe</h1>
           <p className="max-w-2xl text-base leading-7 text-text-muted">
             Capture recipe descriptions, ingredient quantities, and preparation
-            instructions before saving them to the database. This view lives under
-            the admin route, keeping it private from unauthenticated visitors.
+            instructions before saving them to the database. You must be signed
+            in with Google to access this page.
           </p>
         </header>
 
