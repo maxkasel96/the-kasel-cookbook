@@ -920,35 +920,6 @@ export default function RecipeEditForm({ recipe }: RecipeEditFormProps) {
                       Optional ingredient
                     </label>
                   </div>
-                  <div className="mt-4 rounded-2xl border border-border bg-surface px-4 py-3">
-                    <p className="text-xs font-semibold uppercase tracking-[0.2em] text-text-muted">
-                      Assign to steps
-                    </p>
-                    {steps.length ? (
-                      <div className="mt-3 grid gap-2 sm:grid-cols-2">
-                        {steps.map((step, stepIndex) => (
-                          <label
-                            key={step.id}
-                            className="flex items-center gap-2 text-sm font-medium"
-                          >
-                            <input
-                              className="h-4 w-4 rounded border-border"
-                              type="checkbox"
-                              checked={ingredient.assignedStepIds.includes(step.id)}
-                              onChange={() =>
-                                toggleIngredientStep(ingredient.id, step.id)
-                              }
-                            />
-                            Step {stepIndex + 1}
-                          </label>
-                        ))}
-                      </div>
-                    ) : (
-                      <p className="mt-2 text-sm text-text-muted">
-                        Add a preparation step to assign this ingredient.
-                      </p>
-                    )}
-                  </div>
                 </div>
               ))}
             </div>
@@ -993,6 +964,40 @@ export default function RecipeEditForm({ recipe }: RecipeEditFormProps) {
                     value={step.content}
                     onChange={(event) => handleStepChange(step.id, event.target.value)}
                   />
+                  <div className="mt-4 rounded-2xl border border-border bg-surface px-4 py-3">
+                    <p className="text-xs font-semibold uppercase tracking-[0.2em] text-text-muted">
+                      Assigned ingredients
+                    </p>
+                    {ingredientCount ? (
+                      <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                        {ingredients.map((ingredient, ingredientIndex) => {
+                          const label = ingredient.ingredientText.trim()
+                            ? ingredient.ingredientText.trim()
+                            : `Ingredient ${ingredientIndex + 1}`;
+                          return (
+                            <label
+                              key={ingredient.id}
+                              className="flex items-center gap-2 text-sm font-medium"
+                            >
+                              <input
+                                className="h-4 w-4 rounded border-border"
+                                type="checkbox"
+                                checked={ingredient.assignedStepIds.includes(step.id)}
+                                onChange={() =>
+                                  toggleIngredientStep(ingredient.id, step.id)
+                                }
+                              />
+                              {label}
+                            </label>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <p className="mt-2 text-sm text-text-muted">
+                        Add ingredients above to assign them to this step.
+                      </p>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>
