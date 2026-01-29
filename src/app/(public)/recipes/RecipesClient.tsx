@@ -168,30 +168,6 @@ export default function RecipesClient({
             )}
           </div>
         </div>
-        {availableTags.length > 0 && (
-          <div className="mt-4 border-t border-muted/50 pt-4">
-            <p className="text-sm font-medium text-foreground">Filter by tag</p>
-            <div className="mt-3 flex flex-wrap gap-2">
-              {availableTags.map((tag) => {
-                const isSelected = selectedTags.includes(tag)
-                return (
-                  <button
-                    key={tag}
-                    type="button"
-                    onClick={() => toggleTag(tag)}
-                    className={`rounded-full border px-3 py-1 text-xs font-medium transition ${
-                      isSelected
-                        ? 'border-primary bg-primary/10 text-primary'
-                        : 'border-muted/60 text-muted-foreground hover:border-muted hover:bg-muted/30'
-                    }`}
-                  >
-                    {tag}
-                  </button>
-                )
-              })}
-            </div>
-          </div>
-        )}
         {availableCategories.length > 0 && (
           <div className="mt-4 border-t border-muted/50 pt-4">
             <p className="text-sm font-medium text-foreground">
@@ -212,6 +188,30 @@ export default function RecipesClient({
                     }`}
                   >
                     {category}
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+        )}
+        {availableTags.length > 0 && (
+          <div className="mt-4 border-t border-muted/50 pt-4">
+            <p className="text-sm font-medium text-foreground">Filter by tag</p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              {availableTags.map((tag) => {
+                const isSelected = selectedTags.includes(tag)
+                return (
+                  <button
+                    key={tag}
+                    type="button"
+                    onClick={() => toggleTag(tag)}
+                    className={`rounded-full border px-3 py-1 text-xs font-medium transition ${
+                      isSelected
+                        ? 'border-primary bg-primary/10 text-primary'
+                        : 'border-muted/60 text-muted-foreground hover:border-muted hover:bg-muted/30'
+                    }`}
+                  >
+                    {tag}
                   </button>
                 )
               })}
