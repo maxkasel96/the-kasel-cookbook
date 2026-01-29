@@ -19,17 +19,18 @@ export default async function RecipeEditPage({ params }: RecipeEditPageProps) {
   const steps = (recipe.recipe_instruction_steps ?? []).map((step: any) => ({
     id: String(step.id),
     content: step.content ?? "",
-    ingredientIds: Array.isArray(step.ingredient_ids)
-      ? step.ingredient_ids.map((ingredientId: any) => String(ingredientId))
-      : [],
   }));
 
   const ingredientStepMap = new Map<string, string[]>();
-  steps.forEach((step) => {
-    step.ingredientIds.forEach((ingredientId) => {
-      const existing = ingredientStepMap.get(ingredientId) ?? [];
-      ingredientStepMap.set(ingredientId, [...existing, step.id]);
-    });
+  (recipe.recipe_instruction_steps ?? []).forEach((step: any) => {
+    const stepId = String(step.id);
+    (step.recipe_instruction_step_ingredients ?? []).forEach(
+      (link: any) => {
+        const ingredientId = String(link.ingredient_id);
+        const existing = ingredientStepMap.get(ingredientId) ?? [];
+        ingredientStepMap.set(ingredientId, [...existing, stepId]);
+      }
+    );
   });
 
   const ingredients = (recipe.recipe_ingredients ?? []).map((ingredient: any) => ({

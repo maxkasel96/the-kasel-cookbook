@@ -15,7 +15,6 @@ type Ingredient = {
 type InstructionStep = {
   id: string;
   content: string;
-  ingredientIds: string[];
 };
 
 type TagOption = {
@@ -59,7 +58,7 @@ export default function AdminCreateRecipePage() {
     },
   ]);
   const [steps, setSteps] = useState<InstructionStep[]>([
-    { id: createId(), content: "", ingredientIds: [] },
+    { id: createId(), content: "" },
   ]);
   const [availableTags, setAvailableTags] = useState<TagOption[]>([]);
   const [selectedTags, setSelectedTags] = useState<TagOption[]>([]);
@@ -320,7 +319,7 @@ export default function AdminCreateRecipePage() {
   };
 
   const addStep = () => {
-    setSteps((prev) => [...prev, { id: createId(), content: "", ingredientIds: [] }]);
+    setSteps((prev) => [...prev, { id: createId(), content: "" }]);
   };
 
   const removeStep = (id: string) => {

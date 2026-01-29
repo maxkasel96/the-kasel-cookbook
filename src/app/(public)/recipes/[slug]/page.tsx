@@ -170,9 +170,11 @@ export default async function RecipeDetailPage({
             {recipe.recipe_instruction_steps?.length ? (
               <ol className="mt-4 list-decimal space-y-4 pl-6 text-sm text-foreground">
                 {recipe.recipe_instruction_steps.map((step: any) => {
-                  const assignedIngredients = (step.ingredient_ids ?? [])
-                    .map((ingredientId: any) =>
-                      ingredientLookup.get(String(ingredientId))
+                  const assignedIngredients = (
+                    step.recipe_instruction_step_ingredients ?? []
+                  )
+                    .map((link: any) =>
+                      ingredientLookup.get(String(link.ingredient_id))
                     )
                     .filter((ingredient): ingredient is string =>
                       Boolean(ingredient)

@@ -66,7 +66,9 @@ export async function getRecipeBySlug(slug: string) {
           id,
           content,
           position,
-          ingredient_ids
+          recipe_instruction_step_ingredients (
+            ingredient_id
+          )
         ),
         recipe_tags (
           tag_id,
@@ -131,7 +133,9 @@ export async function getRecipeForEditBySlug(slug: string) {
           id,
           content,
           position,
-          ingredient_ids
+          recipe_instruction_step_ingredients (
+            ingredient_id
+          )
         ),
         recipe_tags (
           tag_id,

@@ -16,7 +16,6 @@ type Ingredient = {
 type InstructionStep = {
   id: string;
   content: string;
-  ingredientIds: string[];
 };
 
 type TagOption = {
@@ -70,9 +69,7 @@ const ensureIngredient = (ingredients: Ingredient[]) =>
       ];
 
 const ensureSteps = (steps: InstructionStep[]) =>
-  steps.length
-    ? steps.map((step) => ({ ...step, ingredientIds: step.ingredientIds ?? [] }))
-    : [{ id: createId(), content: "", ingredientIds: [] }];
+  steps.length ? steps : [{ id: createId(), content: "" }];
 
 export default function RecipeEditForm({ recipe }: RecipeEditFormProps) {
   const router = useRouter();
@@ -379,7 +376,7 @@ export default function RecipeEditForm({ recipe }: RecipeEditFormProps) {
   };
 
   const addStep = () => {
-    setSteps((prev) => [...prev, { id: createId(), content: "", ingredientIds: [] }]);
+    setSteps((prev) => [...prev, { id: createId(), content: "" }]);
   };
 
   const removeStep = (id: string) => {
