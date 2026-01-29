@@ -18,12 +18,27 @@ type RecipeTag = {
     | null
 }
 
+type RecipeCategory = {
+  category_id: string | number
+  categories:
+    | {
+        id: string | number
+        name: string
+      }
+    | Array<{
+        id: string | number
+        name: string
+      }>
+    | null
+}
+
 export type FavoriteRecipe = {
   id: string | number
   slug: string
   title: string
   description?: string | null
   recipe_tags?: RecipeTag[] | null
+  recipe_categories?: RecipeCategory[] | null
 }
 
 const STORAGE_KEY = 'kaselFavorites'

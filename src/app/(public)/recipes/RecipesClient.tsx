@@ -18,6 +18,7 @@ export default function RecipesClient({
 }: RecipesClientProps) {
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedTags, setSelectedTags] = useState<string[]>([])
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([])
   const { isFavorite, toggleFavorite } = useFavorites()
 
   const availableTags = useMemo(() => {
@@ -40,6 +41,26 @@ export default function RecipesClient({
     return Array.from(names).sort((a, b) => a.localeCompare(b))
   }, [recipes])
 
+  const availableCategories = useMemo(() => {
+    const names = new Set<string>()
+    recipes.forEach((recipe) => {
+      recipe.recipe_categories?.forEach((recipeCategory) => {
+        if (Array.isArray(recipeCategory?.categories)) {
+          recipeCategory.categories.forEach((category) => {
+            if (category?.name) {
+              names.add(category.name)
+            }
+          })
+          return
+        }
+        if (recipeCategory?.categories?.name) {
+          names.add(recipeCategory.categories.name)
+        }
+      })
+    })
+    return Array.from(names).sort((a, b) => a.localeCompare(b))
+  }, [recipes])
+
   const filteredRecipes = useMemo(() => {
     const normalizedSearch = searchTerm.trim().toLowerCase()
     return recipes.filter((recipe) => {
@@ -49,8 +70,6 @@ export default function RecipesClient({
         recipe.description?.toLowerCase().includes(normalizedSearch)
 
       if (!matchesSearch) return false
-
-      if (selectedTags.length === 0) return true
 
       const recipeTagNames =
         recipe.recipe_tags
@@ -62,9 +81,33 @@ export default function RecipesClient({
           })
           .filter(Boolean) ?? []
 
-      return selectedTags.every((tag) => recipeTagNames.includes(tag))
+      const recipeCategoryNames =
+        recipe.recipe_categories
+          ?.flatMap((recipeCategory) => {
+            if (Array.isArray(recipeCategory?.categories)) {
+              return recipeCategory.categories
+                .map((category) => category?.name)
+                .filter(Boolean)
+            }
+            return recipeCategory?.categories?.name
+              ? [recipeCategory.categories.name]
+              : []
+          })
+          .filter(Boolean) ?? []
+
+      const matchesTags =
+        selectedTags.length === 0 ||
+        selectedTags.every((tag) => recipeTagNames.includes(tag))
+
+      const matchesCategories =
+        selectedCategories.length === 0 ||
+        selectedCategories.every((category) =>
+          recipeCategoryNames.includes(category)
+        )
+
+      return matchesTags && matchesCategories
     })
-  }, [recipes, searchTerm, selectedTags])
+  }, [recipes, searchTerm, selectedTags, selectedCategories])
 
   const toggleTag = (tagName: string) => {
     setSelectedTags((prev) =>
@@ -74,9 +117,18 @@ export default function RecipesClient({
     )
   }
 
+  const toggleCategory = (categoryName: string) => {
+    setSelectedCategories((prev) =>
+      prev.includes(categoryName)
+        ? prev.filter((category) => category !== categoryName)
+        : [...prev, categoryName]
+    )
+  }
+
   const clearFilters = () => {
     setSearchTerm('')
     setSelectedTags([])
+    setSelectedCategories([])
   }
 
   return (
@@ -103,7 +155,9 @@ export default function RecipesClient({
             <span>
               {filteredRecipes.length} of {recipes.length} recipes
             </span>
-            {(searchTerm.length > 0 || selectedTags.length > 0) && (
+            {(searchTerm.length > 0 ||
+              selectedTags.length > 0 ||
+              selectedCategories.length > 0) && (
               <button
                 type="button"
                 onClick={clearFilters}
@@ -132,6 +186,32 @@ export default function RecipesClient({
                     }`}
                   >
                     {tag}
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+        )}
+        {availableCategories.length > 0 && (
+          <div className="mt-4 border-t border-muted/50 pt-4">
+            <p className="text-sm font-medium text-foreground">
+              Filter by category
+            </p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              {availableCategories.map((category) => {
+                const isSelected = selectedCategories.includes(category)
+                return (
+                  <button
+                    key={category}
+                    type="button"
+                    onClick={() => toggleCategory(category)}
+                    className={`rounded-full border px-3 py-1 text-xs font-medium transition ${
+                      isSelected
+                        ? 'border-primary bg-primary/10 text-primary'
+                        : 'border-muted/60 text-muted-foreground hover:border-muted hover:bg-muted/30'
+                    }`}
+                  >
+                    {category}
                   </button>
                 )
               })}
