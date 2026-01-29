@@ -53,7 +53,7 @@ export default async function RecipeEditPage({ params }: RecipeEditPageProps) {
         id: String(recipe.id),
         slug: recipe.slug ?? "",
         title: recipe.title,
-        description: recipe.description,
+        description: recipe.description ?? null,
         prepMinutes: recipe.prep_minutes ?? null,
         cookMinutes: recipe.cook_minutes ?? null,
         servings: recipe.servings ?? null,
