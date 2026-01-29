@@ -22,6 +22,25 @@ export default async function RecipeDetailPage({
     notFound()
   }
 
+  const formatQuantity = (value: number | null) => {
+    if (value === null || !Number.isFinite(value)) {
+      return null
+    }
+    const rounded = Math.round((value + Number.EPSILON) * 100) / 100
+    return rounded.toFixed(2).replace(/\.?0+$/, '')
+  }
+
+  const ingredientLookup = new Map(
+    (recipe.recipe_ingredients ?? []).map((ingredient: any) => {
+      const quantity = formatQuantity(ingredient.quantity ?? null)
+      const unit = ingredient.unit ? `${ingredient.unit} ` : ''
+      const label = `${quantity ? `${quantity} ` : ''}${unit}${
+        ingredient.ingredient_text ?? ''
+      }`.trim()
+      return [String(ingredient.id), label]
+    })
+  )
+
   const tagList =
     recipe.recipe_tags
       ?.flatMap((tagLink: any) => {
@@ -150,11 +169,26 @@ export default async function RecipeDetailPage({
             </h2>
             {recipe.recipe_instruction_steps?.length ? (
               <ol className="mt-4 list-decimal space-y-4 pl-6 text-sm text-foreground">
-                {recipe.recipe_instruction_steps.map((step: any) => (
-                  <li key={step.id} className="leading-relaxed">
-                    {step.content}
-                  </li>
-                ))}
+                {recipe.recipe_instruction_steps.map((step: any) => {
+                  const assignedIngredients = (step.ingredient_ids ?? [])
+                    .map((ingredientId: any) =>
+                      ingredientLookup.get(String(ingredientId))
+                    )
+                    .filter((ingredient): ingredient is string =>
+                      Boolean(ingredient)
+                    )
+
+                  return (
+                    <li key={step.id} className="leading-relaxed">
+                      <span>{step.content}</span>
+                      {assignedIngredients.length ? (
+                        <p className="mt-1 text-xs italic text-muted-foreground">
+                          {assignedIngredients.join(', ')}
+                        </p>
+                      ) : null}
+                    </li>
+                  )
+                })}
               </ol>
             ) : (
               <p className="mt-4 text-sm text-muted-foreground">

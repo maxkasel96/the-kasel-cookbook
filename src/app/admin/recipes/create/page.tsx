@@ -9,11 +9,13 @@ type Ingredient = {
   unit: string;
   note: string;
   isOptional: boolean;
+  assignedStepIds: string[];
 };
 
 type InstructionStep = {
   id: string;
   content: string;
+  ingredientIds: string[];
 };
 
 type TagOption = {
@@ -53,10 +55,11 @@ export default function AdminCreateRecipePage() {
       unit: "",
       note: "",
       isOptional: false,
+      assignedStepIds: [],
     },
   ]);
   const [steps, setSteps] = useState<InstructionStep[]>([
-    { id: createId(), content: "" },
+    { id: createId(), content: "", ingredientIds: [] },
   ]);
   const [availableTags, setAvailableTags] = useState<TagOption[]>([]);
   const [selectedTags, setSelectedTags] = useState<TagOption[]>([]);
@@ -299,6 +302,7 @@ export default function AdminCreateRecipePage() {
         unit: "",
         note: "",
         isOptional: false,
+        assignedStepIds: [],
       },
     ]);
   };
@@ -316,11 +320,35 @@ export default function AdminCreateRecipePage() {
   };
 
   const addStep = () => {
-    setSteps((prev) => [...prev, { id: createId(), content: "" }]);
+    setSteps((prev) => [...prev, { id: createId(), content: "", ingredientIds: [] }]);
   };
 
   const removeStep = (id: string) => {
-    setSteps((prev) => (prev.length > 1 ? prev.filter((step) => step.id !== id) : prev));
+    if (steps.length <= 1) return;
+    setSteps((prev) => prev.filter((step) => step.id !== id));
+    setIngredients((prev) =>
+      prev.map((ingredient) => ({
+        ...ingredient,
+        assignedStepIds: ingredient.assignedStepIds.filter(
+          (stepId) => stepId !== id
+        ),
+      }))
+    );
+  };
+
+  const toggleIngredientStep = (ingredientId: string, stepId: string) => {
+    setIngredients((prev) =>
+      prev.map((ingredient) => {
+        if (ingredient.id !== ingredientId) return ingredient;
+        const isAssigned = ingredient.assignedStepIds.includes(stepId);
+        return {
+          ...ingredient,
+          assignedStepIds: isAssigned
+            ? ingredient.assignedStepIds.filter((id) => id !== stepId)
+            : [...ingredient.assignedStepIds, stepId],
+        };
+      })
+    );
   };
 
   const handleSave = async (status: "draft" | "published") => {
@@ -332,6 +360,38 @@ export default function AdminCreateRecipePage() {
       return;
     }
 
+    const ingredientEntries = ingredients
+      .map((ingredient) => ({
+        id: ingredient.id,
+        ingredientText: ingredient.ingredientText.trim(),
+        quantity: ingredient.quantity.trim(),
+        unit: ingredient.unit.trim(),
+        note: ingredient.note.trim(),
+        isOptional: ingredient.isOptional,
+        assignedStepIds: ingredient.assignedStepIds,
+      }))
+      .filter(
+        (ingredient) =>
+          ingredient.ingredientText ||
+          ingredient.quantity ||
+          ingredient.unit ||
+          ingredient.note
+      );
+
+    const ingredientPositionMap = new Map(
+      ingredientEntries.map((ingredient, index) => [ingredient.id, index + 1])
+    );
+
+    const stepEntries = steps
+      .map((step) => ({
+        content: step.content.trim(),
+        ingredientPositions: ingredientEntries
+          .filter((ingredient) => ingredient.assignedStepIds.includes(step.id))
+          .map((ingredient) => ingredientPositionMap.get(ingredient.id))
+          .filter((position): position is number => typeof position === "number"),
+      }))
+      .filter((step) => step.content);
+
     const payload = {
       title: title.trim(),
       description: description.trim(),
@@ -341,24 +401,22 @@ export default function AdminCreateRecipePage() {
       status,
       tags: selectedTags.map((tag) => tag.name),
       categories: selectedCategories.map((category) => category.name),
-      ingredients: ingredients
-        .map((ingredient) => ({
-          ingredientText: ingredient.ingredientText.trim(),
-          quantity: ingredient.quantity.trim(),
-          unit: ingredient.unit.trim(),
-          note: ingredient.note.trim(),
-          isOptional: ingredient.isOptional,
-        }))
-        .filter(
-          (ingredient) =>
-            ingredient.ingredientText ||
-            ingredient.quantity ||
-            ingredient.unit ||
-            ingredient.note
-        ),
-      steps: steps
-        .map((step) => step.content.trim())
-        .filter(Boolean),
+      ingredients: ingredientEntries.map(
+        ({
+          ingredientText,
+          quantity,
+          unit,
+          note,
+          isOptional,
+        }) => ({
+          ingredientText,
+          quantity,
+          unit,
+          note,
+          isOptional,
+        })
+      ),
+      steps: stepEntries,
     };
 
     if (payload.ingredients.length === 0) {
@@ -806,6 +864,35 @@ export default function AdminCreateRecipePage() {
                       />
                       Optional ingredient
                     </label>
+                  </div>
+                  <div className="mt-4 rounded-2xl border border-border bg-surface px-4 py-3">
+                    <p className="text-xs font-semibold uppercase tracking-[0.2em] text-text-muted">
+                      Assign to steps
+                    </p>
+                    {steps.length ? (
+                      <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                        {steps.map((step, stepIndex) => (
+                          <label
+                            key={step.id}
+                            className="flex items-center gap-2 text-sm font-medium"
+                          >
+                            <input
+                              className="h-4 w-4 rounded border-border"
+                              type="checkbox"
+                              checked={ingredient.assignedStepIds.includes(step.id)}
+                              onChange={() =>
+                                toggleIngredientStep(ingredient.id, step.id)
+                              }
+                            />
+                            Step {stepIndex + 1}
+                          </label>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="mt-2 text-sm text-text-muted">
+                        Add a preparation step to assign this ingredient.
+                      </p>
+                    )}
                   </div>
                 </div>
               ))}

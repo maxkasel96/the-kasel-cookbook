@@ -16,6 +16,22 @@ export default async function RecipeEditPage({ params }: RecipeEditPageProps) {
     notFound();
   }
 
+  const steps = (recipe.recipe_instruction_steps ?? []).map((step: any) => ({
+    id: String(step.id),
+    content: step.content ?? "",
+    ingredientIds: Array.isArray(step.ingredient_ids)
+      ? step.ingredient_ids.map((ingredientId: any) => String(ingredientId))
+      : [],
+  }));
+
+  const ingredientStepMap = new Map<string, string[]>();
+  steps.forEach((step) => {
+    step.ingredientIds.forEach((ingredientId) => {
+      const existing = ingredientStepMap.get(ingredientId) ?? [];
+      ingredientStepMap.set(ingredientId, [...existing, step.id]);
+    });
+  });
+
   const ingredients = (recipe.recipe_ingredients ?? []).map((ingredient: any) => ({
     id: String(ingredient.id),
     ingredientText: ingredient.ingredient_text ?? "",
@@ -23,11 +39,7 @@ export default async function RecipeEditPage({ params }: RecipeEditPageProps) {
     unit: ingredient.unit ?? "",
     note: ingredient.note ?? "",
     isOptional: Boolean(ingredient.is_optional),
-  }));
-
-  const steps = (recipe.recipe_instruction_steps ?? []).map((step: any) => ({
-    id: String(step.id),
-    content: step.content ?? "",
+    assignedStepIds: ingredientStepMap.get(String(ingredient.id)) ?? [],
   }));
 
   const tags = (recipe.recipe_tags ?? [])

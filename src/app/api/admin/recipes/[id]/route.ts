@@ -10,6 +10,11 @@ type RecipeIngredientPayload = {
   isOptional: boolean;
 };
 
+type RecipeInstructionPayload = {
+  content: string;
+  ingredientPositions?: number[];
+};
+
 type RecipePayload = {
   title: string;
   description?: string;
@@ -20,7 +25,7 @@ type RecipePayload = {
   tags?: string[];
   categories?: string[];
   ingredients: RecipeIngredientPayload[];
-  steps: string[];
+  steps: RecipeInstructionPayload[];
 };
 
 const slugify = (value: string) =>
@@ -122,9 +127,10 @@ export async function PUT(request: Request, { params }: RouteParams) {
       };
     });
 
-    const { error: ingredientError } = await supabase
+    const { data: insertedIngredients, error: ingredientError } = await supabase
       .from("recipe_ingredients")
-      .insert(ingredientRows);
+      .insert(ingredientRows)
+      .select("id, position");
 
     if (ingredientError) {
       return NextResponse.json(
@@ -145,10 +151,20 @@ export async function PUT(request: Request, { params }: RouteParams) {
       );
     }
 
-    const stepRows = body.steps.map((content, index) => ({
+    const ingredientPositionMap = new Map(
+      (insertedIngredients ?? []).map((ingredient) => [
+        ingredient.position,
+        ingredient.id,
+      ])
+    );
+
+    const stepRows = body.steps.map((step, index) => ({
       recipe_id: recipe.id,
       position: index + 1,
-      content,
+      content: step.content,
+      ingredient_ids: (step.ingredientPositions ?? [])
+        .map((position) => ingredientPositionMap.get(position))
+        .filter((id): id is string => Boolean(id)),
     }));
 
     const { error: stepError } = await supabase
