@@ -1,9 +1,11 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 
+import { getMeals } from '@/lib/db/meals'
 import { getRecipeBySlug } from '@/lib/db/recipes'
 import { RecipeIngredients } from './recipe-ingredients'
 import FavoriteRecipeButton from './FavoriteRecipeButton'
+import MealAssignment from './MealAssignment'
 
 type RecipeDetailPageProps = {
   params: Promise<{ slug: string }>
@@ -14,6 +16,7 @@ export default async function RecipeDetailPage({
 }: RecipeDetailPageProps) {
   const { slug } = await params
   const recipe = await getRecipeBySlug(slug)
+  const meals = await getMeals()
 
   if (!recipe) {
     notFound()
@@ -105,23 +108,31 @@ export default async function RecipeDetailPage({
           initialServings={recipe.servings ?? null}
         />
 
-        <div className="rounded-2xl border border-muted/60 bg-background p-6 shadow-sm">
-          <h2 className="text-xl font-semibold text-foreground">
-            Instructions
-          </h2>
-          {recipe.recipe_instruction_steps?.length ? (
-            <ol className="mt-4 list-decimal space-y-4 pl-6 text-sm text-foreground">
-              {recipe.recipe_instruction_steps.map((step: any) => (
-                <li key={step.id} className="leading-relaxed">
-                  {step.content}
-                </li>
-              ))}
-            </ol>
-          ) : (
-            <p className="mt-4 text-sm text-muted-foreground">
-              No preparation steps were saved for this recipe.
-            </p>
-          )}
+        <div className="space-y-6">
+          <div className="rounded-2xl border border-muted/60 bg-background p-6 shadow-sm">
+            <h2 className="text-xl font-semibold text-foreground">
+              Instructions
+            </h2>
+            {recipe.recipe_instruction_steps?.length ? (
+              <ol className="mt-4 list-decimal space-y-4 pl-6 text-sm text-foreground">
+                {recipe.recipe_instruction_steps.map((step: any) => (
+                  <li key={step.id} className="leading-relaxed">
+                    {step.content}
+                  </li>
+                ))}
+              </ol>
+            ) : (
+              <p className="mt-4 text-sm text-muted-foreground">
+                No preparation steps were saved for this recipe.
+              </p>
+            )}
+          </div>
+
+          <MealAssignment
+            recipeId={recipe.id}
+            recipeTitle={recipe.title}
+            meals={meals}
+          />
         </div>
       </section>
 
