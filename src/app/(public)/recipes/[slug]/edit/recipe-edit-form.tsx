@@ -97,12 +97,14 @@ export default function RecipeEditForm({ recipe }: RecipeEditFormProps) {
   );
   const [newTagName, setNewTagName] = useState("");
   const [tagSearchTerm, setTagSearchTerm] = useState("");
+  const [tagSelectValue, setTagSelectValue] = useState("");
   const [availableCategories, setAvailableCategories] = useState<CategoryOption[]>([]);
   const [selectedCategories, setSelectedCategories] = useState<CategoryOption[]>(
     recipe.categories ?? []
   );
   const [newCategoryName, setNewCategoryName] = useState("");
   const [categorySearchTerm, setCategorySearchTerm] = useState("");
+  const [categorySelectValue, setCategorySelectValue] = useState("");
 
   const ingredientCount = useMemo(
     () => ingredients.filter((ingredient) => ingredient.ingredientText.trim()).length,
@@ -211,21 +213,17 @@ export default function RecipeEditForm({ recipe }: RecipeEditFormProps) {
     );
   }, [availableTags, tagSearchTerm]);
 
-  const toggleTag = (tag: TagOption) => {
+  const handleSelectTag = (value: string) => {
+    if (!value) return;
+    const match = availableTags.find((tag) => tag.id === value);
+    if (!match) return;
     setSelectedTags((prev) => {
       const isSelected = prev.some(
-        (selected) => normalizeTag(selected.name) === normalizeTag(tag.name)
+        (selected) => normalizeTag(selected.name) === normalizeTag(match.name)
       );
-
-      if (isSelected) {
-        return prev.filter(
-          (selected) =>
-            normalizeTag(selected.name) !== normalizeTag(tag.name)
-        );
-      }
-
-      return [...prev, tag];
+      return isSelected ? prev : [...prev, match];
     });
+    setTagSelectValue("");
   };
 
   const addNewTag = () => {
@@ -270,22 +268,19 @@ export default function RecipeEditForm({ recipe }: RecipeEditFormProps) {
     );
   }, [availableCategories, categorySearchTerm]);
 
-  const toggleCategory = (category: CategoryOption) => {
+  const handleSelectCategory = (value: string) => {
+    if (!value) return;
+    const match = availableCategories.find((category) => category.id === value);
+    if (!match) return;
     setSelectedCategories((prev) => {
       const isSelected = prev.some(
         (selected) =>
-          normalizeCategory(selected.name) === normalizeCategory(category.name)
+          normalizeCategory(selected.name) ===
+          normalizeCategory(match.name)
       );
-
-      if (isSelected) {
-        return prev.filter(
-          (selected) =>
-            normalizeCategory(selected.name) !== normalizeCategory(category.name)
-        );
-      }
-
-      return [...prev, category];
+      return isSelected ? prev : [...prev, match];
     });
+    setCategorySelectValue("");
   };
 
   const addNewCategory = () => {
@@ -572,29 +567,22 @@ export default function RecipeEditForm({ recipe }: RecipeEditFormProps) {
                           onChange={(event) => setTagSearchTerm(event.target.value)}
                         />
                         {filteredTags.length ? (
-                          <div className="mt-3 flex flex-wrap gap-2">
-                            {filteredTags.map((tag) => {
-                              const isSelected = selectedTags.some(
-                                (selected) =>
-                                  normalizeTag(selected.name) ===
-                                  normalizeTag(tag.name)
-                              );
-                              return (
-                                <button
-                                  key={tag.id}
-                                  className={`rounded-full border px-4 py-1 text-sm font-semibold transition ${
-                                    isSelected
-                                      ? "border-accent bg-accent/10 text-accent"
-                                      : "border-border-strong text-foreground hover:border-accent-2 hover:text-accent-2"
-                                  }`}
-                                  type="button"
-                                  onClick={() => toggleTag(tag)}
-                                >
-                                  {tag.name}
-                                </button>
-                              );
-                            })}
-                          </div>
+                          <select
+                            className="mt-3 h-11 w-full rounded-2xl border border-border bg-surface px-4 text-base text-foreground focus:border-focus focus:outline-none focus:ring-2 focus:ring-focus/40"
+                            value={tagSelectValue}
+                            onChange={(event) => {
+                              const value = event.target.value;
+                              setTagSelectValue(value);
+                              handleSelectTag(value);
+                            }}
+                          >
+                            <option value="">Select a tag</option>
+                            {filteredTags.map((tag) => (
+                              <option key={tag.id} value={tag.id}>
+                                {tag.name}
+                              </option>
+                            ))}
+                          </select>
                         ) : (
                           <p className="mt-3 text-sm text-text-muted">
                             No tags match your search.
@@ -677,29 +665,22 @@ export default function RecipeEditForm({ recipe }: RecipeEditFormProps) {
                           }
                         />
                         {filteredCategories.length ? (
-                          <div className="mt-3 flex flex-wrap gap-2">
-                            {filteredCategories.map((category) => {
-                              const isSelected = selectedCategories.some(
-                                (selected) =>
-                                  normalizeCategory(selected.name) ===
-                                  normalizeCategory(category.name)
-                              );
-                              return (
-                                <button
-                                  key={category.id}
-                                  className={`rounded-full border px-4 py-1 text-sm font-semibold transition ${
-                                    isSelected
-                                      ? "border-accent bg-accent/10 text-accent"
-                                      : "border-border-strong text-foreground hover:border-accent-2 hover:text-accent-2"
-                                  }`}
-                                  type="button"
-                                  onClick={() => toggleCategory(category)}
-                                >
-                                  {category.name}
-                                </button>
-                              );
-                            })}
-                          </div>
+                          <select
+                            className="mt-3 h-11 w-full rounded-2xl border border-border bg-surface px-4 text-base text-foreground focus:border-focus focus:outline-none focus:ring-2 focus:ring-focus/40"
+                            value={categorySelectValue}
+                            onChange={(event) => {
+                              const value = event.target.value;
+                              setCategorySelectValue(value);
+                              handleSelectCategory(value);
+                            }}
+                          >
+                            <option value="">Select a category</option>
+                            {filteredCategories.map((category) => (
+                              <option key={category.id} value={category.id}>
+                                {category.name}
+                              </option>
+                            ))}
+                          </select>
                         ) : (
                           <p className="mt-3 text-sm text-text-muted">
                             No categories match your search.
