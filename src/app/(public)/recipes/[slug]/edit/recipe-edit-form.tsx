@@ -96,11 +96,13 @@ export default function RecipeEditForm({ recipe }: RecipeEditFormProps) {
     recipe.tags ?? []
   );
   const [newTagName, setNewTagName] = useState("");
+  const [tagSearchTerm, setTagSearchTerm] = useState("");
   const [availableCategories, setAvailableCategories] = useState<CategoryOption[]>([]);
   const [selectedCategories, setSelectedCategories] = useState<CategoryOption[]>(
     recipe.categories ?? []
   );
   const [newCategoryName, setNewCategoryName] = useState("");
+  const [categorySearchTerm, setCategorySearchTerm] = useState("");
 
   const ingredientCount = useMemo(
     () => ingredients.filter((ingredient) => ingredient.ingredientText.trim()).length,
@@ -201,6 +203,14 @@ export default function RecipeEditForm({ recipe }: RecipeEditFormProps) {
 
   const normalizeTag = (name: string) => name.trim().toLowerCase();
 
+  const filteredTags = useMemo(() => {
+    const normalizedSearch = normalizeTag(tagSearchTerm);
+    if (!normalizedSearch) return availableTags;
+    return availableTags.filter((tag) =>
+      normalizeTag(tag.name).includes(normalizedSearch)
+    );
+  }, [availableTags, tagSearchTerm]);
+
   const toggleTag = (tag: TagOption) => {
     setSelectedTags((prev) => {
       const isSelected = prev.some(
@@ -251,6 +261,14 @@ export default function RecipeEditForm({ recipe }: RecipeEditFormProps) {
   };
 
   const normalizeCategory = (name: string) => name.trim().toLowerCase();
+
+  const filteredCategories = useMemo(() => {
+    const normalizedSearch = normalizeCategory(categorySearchTerm);
+    if (!normalizedSearch) return availableCategories;
+    return availableCategories.filter((category) =>
+      normalizeCategory(category.name).includes(normalizedSearch)
+    );
+  }, [availableCategories, categorySearchTerm]);
 
   const toggleCategory = (category: CategoryOption) => {
     setSelectedCategories((prev) => {
@@ -546,29 +564,43 @@ export default function RecipeEditForm({ recipe }: RecipeEditFormProps) {
                         Loading tags...
                       </p>
                     ) : availableTags.length ? (
-                      <div className="mt-3 flex flex-wrap gap-2">
-                        {availableTags.map((tag) => {
-                          const isSelected = selectedTags.some(
-                            (selected) =>
-                              normalizeTag(selected.name) ===
-                              normalizeTag(tag.name)
-                          );
-                          return (
-                            <button
-                              key={tag.id}
-                              className={`rounded-full border px-4 py-1 text-sm font-semibold transition ${
-                                isSelected
-                                  ? "border-accent bg-accent/10 text-accent"
-                                  : "border-border-strong text-foreground hover:border-accent-2 hover:text-accent-2"
-                              }`}
-                              type="button"
-                              onClick={() => toggleTag(tag)}
-                            >
-                              {tag.name}
-                            </button>
-                          );
-                        })}
-                      </div>
+                      <>
+                        <input
+                          className="mt-3 h-11 w-full rounded-2xl border border-border bg-surface px-4 text-base text-foreground focus:border-focus focus:outline-none focus:ring-2 focus:ring-focus/40"
+                          placeholder="Search tags"
+                          value={tagSearchTerm}
+                          onChange={(event) => setTagSearchTerm(event.target.value)}
+                        />
+                        {filteredTags.length ? (
+                          <div className="mt-3 flex flex-wrap gap-2">
+                            {filteredTags.map((tag) => {
+                              const isSelected = selectedTags.some(
+                                (selected) =>
+                                  normalizeTag(selected.name) ===
+                                  normalizeTag(tag.name)
+                              );
+                              return (
+                                <button
+                                  key={tag.id}
+                                  className={`rounded-full border px-4 py-1 text-sm font-semibold transition ${
+                                    isSelected
+                                      ? "border-accent bg-accent/10 text-accent"
+                                      : "border-border-strong text-foreground hover:border-accent-2 hover:text-accent-2"
+                                  }`}
+                                  type="button"
+                                  onClick={() => toggleTag(tag)}
+                                >
+                                  {tag.name}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        ) : (
+                          <p className="mt-3 text-sm text-text-muted">
+                            No tags match your search.
+                          </p>
+                        )}
+                      </>
                     ) : (
                       <p className="mt-3 text-sm text-text-muted">
                         No existing tags found.
@@ -635,29 +667,45 @@ export default function RecipeEditForm({ recipe }: RecipeEditFormProps) {
                         Loading categories...
                       </p>
                     ) : availableCategories.length ? (
-                      <div className="mt-3 flex flex-wrap gap-2">
-                        {availableCategories.map((category) => {
-                          const isSelected = selectedCategories.some(
-                            (selected) =>
-                              normalizeCategory(selected.name) ===
-                              normalizeCategory(category.name)
-                          );
-                          return (
-                            <button
-                              key={category.id}
-                              className={`rounded-full border px-4 py-1 text-sm font-semibold transition ${
-                                isSelected
-                                  ? "border-accent bg-accent/10 text-accent"
-                                  : "border-border-strong text-foreground hover:border-accent-2 hover:text-accent-2"
-                              }`}
-                              type="button"
-                              onClick={() => toggleCategory(category)}
-                            >
-                              {category.name}
-                            </button>
-                          );
-                        })}
-                      </div>
+                      <>
+                        <input
+                          className="mt-3 h-11 w-full rounded-2xl border border-border bg-surface px-4 text-base text-foreground focus:border-focus focus:outline-none focus:ring-2 focus:ring-focus/40"
+                          placeholder="Search categories"
+                          value={categorySearchTerm}
+                          onChange={(event) =>
+                            setCategorySearchTerm(event.target.value)
+                          }
+                        />
+                        {filteredCategories.length ? (
+                          <div className="mt-3 flex flex-wrap gap-2">
+                            {filteredCategories.map((category) => {
+                              const isSelected = selectedCategories.some(
+                                (selected) =>
+                                  normalizeCategory(selected.name) ===
+                                  normalizeCategory(category.name)
+                              );
+                              return (
+                                <button
+                                  key={category.id}
+                                  className={`rounded-full border px-4 py-1 text-sm font-semibold transition ${
+                                    isSelected
+                                      ? "border-accent bg-accent/10 text-accent"
+                                      : "border-border-strong text-foreground hover:border-accent-2 hover:text-accent-2"
+                                  }`}
+                                  type="button"
+                                  onClick={() => toggleCategory(category)}
+                                >
+                                  {category.name}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        ) : (
+                          <p className="mt-3 text-sm text-text-muted">
+                            No categories match your search.
+                          </p>
+                        )}
+                      </>
                     ) : (
                       <p className="mt-3 text-sm text-text-muted">
                         No existing categories found.
