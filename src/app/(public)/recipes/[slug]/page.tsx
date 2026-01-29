@@ -109,12 +109,6 @@ export default async function RecipeDetailPage({
         />
 
         <div className="space-y-6">
-          <MealAssignment
-            recipeId={recipe.id}
-            recipeTitle={recipe.title}
-            meals={meals}
-          />
-
           <div className="rounded-2xl border border-muted/60 bg-background p-6 shadow-sm">
             <h2 className="text-xl font-semibold text-foreground">
               Instructions
@@ -133,6 +127,12 @@ export default async function RecipeDetailPage({
               </p>
             )}
           </div>
+
+          <MealAssignment
+            recipeId={recipe.id}
+            recipeTitle={recipe.title}
+            meals={meals}
+          />
         </div>
       </section>
 
