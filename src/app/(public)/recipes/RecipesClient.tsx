@@ -183,7 +183,7 @@ export default function RecipesClient({
                     onClick={() => toggleCategory(category)}
                     className={`rounded-full border px-3 py-1 text-xs font-medium transition ${
                       isSelected
-                        ? 'border-primary bg-primary/10 text-primary'
+                        ? 'border-primary/70 bg-primary/15 text-primary shadow-sm ring-1 ring-primary/30'
                         : 'border-muted/60 text-muted-foreground hover:border-muted hover:bg-muted/30'
                     }`}
                   >
@@ -207,7 +207,7 @@ export default function RecipesClient({
                     onClick={() => toggleTag(tag)}
                     className={`rounded-full border px-3 py-1 text-xs font-medium transition ${
                       isSelected
-                        ? 'border-primary bg-primary/10 text-primary'
+                        ? 'border-primary/70 bg-primary/15 text-primary shadow-sm ring-1 ring-primary/30'
                         : 'border-muted/60 text-muted-foreground hover:border-muted hover:bg-muted/30'
                     }`}
                   >
