@@ -100,6 +100,8 @@ export default function RecipeServingsSection({
         isValidServings={isValidServings}
         onServingsChange={setServingsInput}
         getScaledQuantity={getScaledQuantity}
+        recipeId={String(recipeId)}
+        recipeTitle={recipeTitle}
       />
 
       <div className="space-y-6">
