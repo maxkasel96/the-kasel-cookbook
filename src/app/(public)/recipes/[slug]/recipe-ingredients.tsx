@@ -133,9 +133,11 @@ export function RecipeIngredients({
                   type="button"
                   disabled={isPending}
                   onClick={() => handleAdd(ingredient, displayLabel)}
-                  className="rounded-full border border-muted/60 px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground transition hover:border-muted hover:text-foreground disabled:cursor-not-allowed disabled:opacity-60"
+                  className="flex h-9 w-9 items-center justify-center rounded-full border border-muted/60 text-base font-semibold text-muted-foreground transition hover:border-muted hover:text-foreground disabled:cursor-not-allowed disabled:opacity-60"
+                  aria-label="Add to list"
+                  title="Add to list"
                 >
-                  Add to list
+                  +
                 </button>
               </li>
             )
