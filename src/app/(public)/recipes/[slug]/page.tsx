@@ -10,6 +10,24 @@ type RecipeDetailPageProps = {
   params: Promise<{ slug: string }>
 }
 
+const formatMinutes = (minutes: number) => {
+  if (minutes <= 60) {
+    return `${minutes} min`
+  }
+
+  const hours = Math.floor(minutes / 60)
+  const remainingMinutes = minutes % 60
+  const hourLabel = hours === 1 ? 'hour' : 'hours'
+
+  if (!remainingMinutes) {
+    return `${hours} ${hourLabel}`
+  }
+
+  const minuteLabel = remainingMinutes === 1 ? 'minute' : 'minutes'
+
+  return `${hours} ${hourLabel} ${remainingMinutes} ${minuteLabel}`
+}
+
 export default async function RecipeDetailPage({
   params,
 }: RecipeDetailPageProps) {
@@ -47,10 +65,10 @@ export default async function RecipeDetailPage({
 
   const detailItems = [
     recipe.prep_minutes
-      ? { label: 'Prep time', value: `${recipe.prep_minutes} min` }
+      ? { label: 'Prep time', value: formatMinutes(recipe.prep_minutes) }
       : null,
     recipe.cook_minutes
-      ? { label: 'Cook time', value: `${recipe.cook_minutes} min` }
+      ? { label: 'Cook time', value: formatMinutes(recipe.cook_minutes) }
       : null,
   ].filter(Boolean) as { label: string; value: string | number }[]
 
