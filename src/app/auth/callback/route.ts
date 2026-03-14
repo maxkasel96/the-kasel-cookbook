@@ -7,6 +7,7 @@ export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url)
   const code = searchParams.get('code')
   const baseUrl = origin
+  let signInCompleted = false
 
   if (code) {
     const supabase = await createSupabaseServerClient()
@@ -14,8 +15,11 @@ export async function GET(request: Request) {
 
     if (data?.user?.id) {
       await syncUserRoleToMetadata(data.user.id)
+      signInCompleted = true
     }
   }
 
-  return NextResponse.redirect(new URL('/', baseUrl))
+  return NextResponse.redirect(
+    new URL(signInCompleted ? '/?auth=google_success' : '/', baseUrl)
+  )
 }

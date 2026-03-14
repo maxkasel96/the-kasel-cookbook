@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation'
 import { getMeals } from '@/lib/db/meals'
 import { getRecipeBySlug } from '@/lib/db/recipes'
 import FavoriteRecipeButton from './FavoriteRecipeButton'
+import RecipeViewTracker from './RecipeViewTracker'
 import RecipeServingsSection from './recipe-servings-section'
 
 type RecipeDetailPageProps = {
@@ -74,6 +75,13 @@ export default async function RecipeDetailPage({
 
   return (
     <main className="mx-auto flex w-full max-w-4xl flex-col gap-8 px-6 py-10">
+      <RecipeViewTracker
+        recipeId={String(recipe.id)}
+        recipeTitle={recipe.title}
+        recipeSlug={recipe.slug}
+        category={categoryList[0]}
+        tags={tagList}
+      />
       <header className="space-y-4">
         <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
           <div className="space-y-3">

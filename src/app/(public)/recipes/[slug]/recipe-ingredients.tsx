@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 
+import { trackShoppingItemAdded } from '@/lib/analytics/track'
 import { createShoppingListItem } from '@/lib/shopping-list-client'
 
 type ScaledQuantityFormatter = (quantity: number | null) => string | null
@@ -51,6 +52,14 @@ export function RecipeIngredients({
         ingredientText: displayLabel,
         recipeId,
         recipeTitle,
+      })
+      trackShoppingItemAdded({
+        item_name: ingredient.ingredient_text,
+        source: 'recipe',
+        ...(ingredient.quantity !== null ? { quantity: ingredient.quantity } : {}),
+        ...(ingredient.unit ? { unit: ingredient.unit } : {}),
+        recipe_id: recipeId,
+        recipe_title: recipeTitle,
       })
       setFeedback(`Added ${ingredient.ingredient_text} to the shopping list.`)
     } catch (error) {

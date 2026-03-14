@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
 
+import { trackFavoriteAdded, trackFavoriteRemoved } from '@/lib/analytics/track'
 import { useHouseholds } from '@/lib/use-households'
 
 type RecipeTag = {
@@ -120,10 +121,20 @@ export function useFavorites() {
             (item) => String(item.id) !== String(recipe.id)
           )
           persistLocalFavorites(nextFavorites)
+          trackFavoriteRemoved({
+            recipe_id: String(recipe.id),
+            recipe_title: recipe.title,
+            recipe_slug: recipe.slug,
+          })
           return
         }
 
         persistLocalFavorites([recipe, ...favorites])
+        trackFavoriteAdded({
+          recipe_id: String(recipe.id),
+          recipe_title: recipe.title,
+          recipe_slug: recipe.slug,
+        })
         return
       }
 
@@ -142,6 +153,11 @@ export function useFavorites() {
         setFavorites((current) =>
           current.filter((item) => String(item.id) !== String(recipe.id))
         )
+        trackFavoriteRemoved({
+          recipe_id: String(recipe.id),
+          recipe_title: recipe.title,
+          recipe_slug: recipe.slug,
+        })
         return
       }
 
@@ -158,6 +174,11 @@ export function useFavorites() {
       }
 
       setFavorites((current) => [recipe, ...current])
+      trackFavoriteAdded({
+        recipe_id: String(recipe.id),
+        recipe_title: recipe.title,
+        recipe_slug: recipe.slug,
+      })
     },
     [favoriteIds, favorites, persistLocalFavorites, selectedHouseholdId]
   )
