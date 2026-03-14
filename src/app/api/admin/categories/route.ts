@@ -1,8 +1,14 @@
 import { NextResponse } from "next/server";
 
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+import { ensureAdminRequest } from "@/lib/auth/require-admin";
 
 export async function GET() {
+  const adminCheck = await ensureAdminRequest();
+  if (adminCheck.unauthorizedResponse) {
+    return adminCheck.unauthorizedResponse;
+  }
+
   try {
     const supabase = createSupabaseAdminClient();
     const { data, error } = await supabase
