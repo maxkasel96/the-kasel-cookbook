@@ -3,6 +3,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 
+import { trackAdminRecipeUpdated } from "@/lib/analytics/track";
+
 type Ingredient = {
   id: string;
   ingredientText: string;
@@ -501,6 +503,13 @@ export default function RecipeEditForm({ recipe }: RecipeEditFormProps) {
 
       const responsePayload = (await response.json()) as { slug?: string };
       const nextSlug = responsePayload.slug ?? currentSlug;
+
+      trackAdminRecipeUpdated({
+        recipe_id: recipe.id,
+        recipe_title: payload.title,
+        recipe_slug: nextSlug,
+        publish_status: status,
+      });
 
       setFormStatus(
         status === "published"

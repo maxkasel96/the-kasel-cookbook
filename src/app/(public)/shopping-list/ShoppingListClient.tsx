@@ -4,6 +4,11 @@ import type { FormEvent } from 'react'
 import { useEffect, useMemo, useState } from 'react'
 
 import {
+  trackShoppingItemAdded,
+  trackShoppingItemRemoved,
+  trackShoppingItemToggled,
+} from '@/lib/analytics/track'
+import {
   clearShoppingList,
   createShoppingListItem,
   deleteShoppingListItem,
@@ -63,6 +68,10 @@ export default function ShoppingListClient() {
         ingredientText: trimmed,
       })
       setItems((prev) => [...prev, created])
+      trackShoppingItemAdded({
+        item_name: created.ingredient_text,
+        source: 'manual',
+      })
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unable to add item.')
     }
@@ -79,6 +88,10 @@ export default function ShoppingListClient() {
     )
     try {
       await updateShoppingListItem(item.id, { isChecked: nextChecked })
+      trackShoppingItemToggled({
+        item_name: item.ingredient_text,
+        completed: nextChecked,
+      })
     } catch (err) {
       setItems((prev) =>
         prev.map((entry) =>
@@ -102,6 +115,12 @@ export default function ShoppingListClient() {
     setItems((prev) => prev.filter((item) => item.id !== itemId))
     try {
       await deleteShoppingListItem(itemId)
+      const removedItem = previous.find((item) => item.id === itemId)
+      if (removedItem) {
+        trackShoppingItemRemoved({
+          item_name: removedItem.ingredient_text,
+        })
+      }
     } catch (err) {
       setItems(previous)
       setError(err instanceof Error ? err.message : 'Unable to remove item.')

@@ -2,6 +2,8 @@
 
 import { useEffect, useMemo, useState } from "react";
 
+import { trackAdminRecipeCreated } from "@/lib/analytics/track";
+
 type Ingredient = {
   id: string;
   ingredientText: string;
@@ -441,6 +443,18 @@ export default function AdminCreateRecipePage() {
         const errorPayload = (await response.json()) as { error?: string };
         throw new Error(errorPayload.error ?? "Unable to save recipe.");
       }
+
+      const responsePayload = (await response.json()) as {
+        id?: string | number;
+        slug?: string;
+      };
+
+      trackAdminRecipeCreated({
+        ...(responsePayload.id ? { recipe_id: String(responsePayload.id) } : {}),
+        ...(responsePayload.slug ? { recipe_slug: responsePayload.slug } : {}),
+        recipe_title: payload.title,
+        publish_status: status,
+      });
 
       setFormStatus(
         status === "published"

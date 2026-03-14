@@ -1,8 +1,9 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { type FormEvent, useMemo, useState } from 'react'
 import Link from 'next/link'
 
+import { trackRecipeSearch } from '@/lib/analytics/track'
 import { useFavorites, type FavoriteRecipe } from '@/lib/use-favorites'
 
 type RecipesClientProps = {
@@ -131,9 +132,22 @@ export default function RecipesClient({
     setSelectedCategories([])
   }
 
+  const handleSearchSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    trackRecipeSearch({
+      search_term: searchTerm.trim(),
+      results_count: filteredRecipes.length,
+      ...(selectedCategories[0] ? { category: selectedCategories[0] } : {}),
+      ...(selectedTags.length ? { tags: selectedTags } : {}),
+    })
+  }
+
   return (
     <section className="space-y-6">
-      <div className="rounded-xl border border-muted/60 bg-background p-4 shadow-sm">
+      <form
+        className="rounded-xl border border-muted/60 bg-background p-4 shadow-sm"
+        onSubmit={handleSearchSubmit}
+      >
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex-1 space-y-2">
             <label
@@ -150,6 +164,12 @@ export default function RecipesClient({
               onChange={(event) => setSearchTerm(event.target.value)}
               className="w-full rounded-md border border-muted/70 bg-background px-3 py-2 text-sm text-foreground shadow-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
             />
+            <button
+              type="submit"
+              className="mt-2 rounded-md border border-muted/60 px-3 py-1 text-xs font-medium text-foreground transition hover:border-muted hover:bg-muted/30"
+            >
+              Apply search
+            </button>
           </div>
           <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
             <span>
@@ -218,7 +238,7 @@ export default function RecipesClient({
             </div>
           </div>
         )}
-      </div>
+      </form>
 
       {recipes.length === 0 ? (
         <p className="rounded-lg border border-dashed border-muted-foreground/40 bg-muted/20 px-4 py-8 text-center text-sm text-muted-foreground">
