@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+import { ensureAdminRequest } from "@/lib/auth/require-admin";
 
 type RecipeIngredientPayload = {
   ingredientText: string;
@@ -49,6 +50,11 @@ const parseOptionalNumber = (value: unknown) => {
 };
 
 export async function POST(request: Request) {
+  const adminCheck = await ensureAdminRequest();
+  if (adminCheck.unauthorizedResponse) {
+    return adminCheck.unauthorizedResponse;
+  }
+
   try {
     const body = (await request.json()) as RecipePayload;
 

@@ -46,3 +46,26 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+## Role-based admin access
+
+Admin routes are protected with role-based access control:
+
+- `/admin/**` pages are gated in `src/middleware.ts`.
+- `/api/admin/**` endpoints verify authenticated admin users before allowing access.
+- Roles are stored in `public.user_roles` and mirrored into Supabase Auth `app_metadata.role` at sign-in.
+
+### Migration and bootstrap
+
+1. Run Supabase migrations (including `supabase/migrations/20260314_create_user_roles.sql`).
+2. Sign in with Google at least once for each user you want to manage.
+3. Promote the first admin manually in SQL:
+
+```sql
+insert into public.user_roles (user_id, role)
+values ('<auth-user-uuid>', 'admin')
+on conflict (user_id)
+do update set role = excluded.role;
+```
+
+After that, admins can manage access in the app at `/admin/access`.

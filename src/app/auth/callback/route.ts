@@ -1,4 +1,6 @@
 import { NextResponse } from 'next/server'
+
+import { syncUserRoleToMetadata } from '@/lib/auth/roles'
 import { createSupabaseServerClient } from '@/lib/supabase/server'
 
 export async function GET(request: Request) {
@@ -8,7 +10,11 @@ export async function GET(request: Request) {
 
   if (code) {
     const supabase = await createSupabaseServerClient()
-    await supabase.auth.exchangeCodeForSession(code)
+    const { data } = await supabase.auth.exchangeCodeForSession(code)
+
+    if (data?.user?.id) {
+      await syncUserRoleToMetadata(data.user.id)
+    }
   }
 
   return NextResponse.redirect(new URL('/', baseUrl))

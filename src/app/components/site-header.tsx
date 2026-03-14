@@ -10,6 +10,7 @@ const navigation = [
   { label: "Favorites", href: "/favorites" },
   { label: "Shopping List", href: "/shopping-list" },
   { label: "Create Recipe", href: "/admin/recipes/create" },
+  { label: "Access", href: "/admin/access" },
   { label: "Login", href: "/login" },
 ];
 

@@ -2,6 +2,11 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
 
+import { ADMIN_ROLE } from '@/lib/auth/roles'
+
+const adminPathPrefixes = ['/admin']
+const publicPaths = ['/login', '/auth/callback']
+
 export async function middleware(request: NextRequest) {
   const { nextUrl } = request
 
@@ -15,10 +20,7 @@ export async function middleware(request: NextRequest) {
 
   const response = NextResponse.next()
 
-  if (
-    nextUrl.pathname.startsWith('/login') ||
-    nextUrl.pathname.startsWith('/auth/callback')
-  ) {
+  if (publicPaths.some((path) => nextUrl.pathname.startsWith(path))) {
     return response
   }
 
@@ -45,6 +47,14 @@ export async function middleware(request: NextRequest) {
     const loginUrl = new URL('/login', request.url)
     loginUrl.searchParams.set('redirect', nextUrl.pathname + nextUrl.search)
     return NextResponse.redirect(loginUrl)
+  }
+
+  if (adminPathPrefixes.some((path) => nextUrl.pathname.startsWith(path))) {
+    const role = data.user.app_metadata?.role
+
+    if (role !== ADMIN_ROLE) {
+      return NextResponse.redirect(new URL('/', request.url))
+    }
   }
 
   return response
