@@ -76,6 +76,8 @@ type RecipeEditorFormProps = {
   onSelectCategory: (value: string) => void;
   onSelectTag: (value: string) => void;
   onServingsChange: (value: string) => void;
+  tagSearchTerm: string;
+  tagSelectValue: string;
   onTagSearchTermChange: (value: string) => void;
   onTagSelectValueChange: (value: string) => void;
   onTitleChange: (value: string) => void;
