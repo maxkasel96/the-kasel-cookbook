@@ -1,30 +1,12 @@
 import { NextResponse } from "next/server";
 
-import { type ImportedRecipeDraft } from "@/lib/recipe-import";
+import { importRecipeFromUrl } from "@/lib/recipe-import.server";
 
 type ParseBody = {
   url?: string;
 };
 
-const demoRecipeFromUrl = (url: string): ImportedRecipeDraft => ({
-  sourceUrl: url,
-  title: "Imported recipe draft",
-  description:
-    "Framework response: connect this route to OpenAI + page scraping to generate structured recipe data.",
-  servings: "4",
-  prepMinutes: "15",
-  cookMinutes: "25",
-  ingredients: [
-    { quantity: "1", unit: "lb", text: "pasta" },
-    { quantity: "2", unit: "cups", text: "marinara sauce" },
-    { quantity: "1/2", unit: "cup", text: "parmesan cheese", optional: true },
-  ],
-  steps: [
-    "Scrape the recipe page and extract the visible ingredient list and instructions.",
-    "Send the raw content to OpenAI with a prompt that normalizes ingredients and steps.",
-    "Return structured JSON and let the user review before creating a recipe.",
-  ],
-});
+export const runtime = "nodejs";
 
 export async function POST(request: Request) {
   const body = (await request.json()) as ParseBody;
@@ -36,19 +18,32 @@ export async function POST(request: Request) {
 
   try {
     const normalizedUrl = new URL(rawUrl);
+    if (!["http:", "https:"].includes(normalizedUrl.protocol)) {
+      return NextResponse.json(
+        { error: "Please enter an http or https recipe URL." },
+        { status: 400 }
+      );
+    }
 
-    // TODO: Replace this with real implementation:
-    // 1) Fetch the target recipe page HTML.
-    // 2) Extract recipe text blocks from the document.
-    // 3) Call OpenAI and ask for structured recipe JSON.
-    // 4) Validate and return that JSON as ImportedRecipeDraft.
-    const draft = demoRecipeFromUrl(normalizedUrl.toString());
+    const draft = await importRecipeFromUrl(normalizedUrl.toString());
 
     return NextResponse.json({ draft });
-  } catch {
+  } catch (error) {
     return NextResponse.json(
-      { error: "Please enter a valid absolute URL (including https://)." },
-      { status: 400 }
+      {
+        error:
+          error instanceof Error
+            ? error.message
+            : "Please enter a valid absolute URL (including https://).",
+      },
+      {
+        status:
+          error instanceof TypeError ||
+          (error instanceof Error &&
+            error.message.includes("valid absolute URL"))
+            ? 400
+            : 500,
+      }
     );
   }
 }

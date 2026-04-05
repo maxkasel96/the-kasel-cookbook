@@ -44,6 +44,31 @@ This bypass is only honored outside production. It skips the middleware login re
 
 Important: this does not create a real Supabase session or an `auth.users` record, so features that depend on authenticated database rows and row-level security, such as household membership and shopping list ownership, still need a real signed-in user.
 
+## Recipe URL import setup
+
+The `/recipe-input` page now uses a server route that:
+
+1. Fetches the target recipe page HTML.
+2. Extracts JSON-LD recipe schema and visible text from the page.
+3. Sends that content to OpenAI to normalize it into the same draft shape used by `/admin/recipes/create`.
+4. Stores the draft in browser local storage so the admin create form can hydrate from it.
+
+Add these server-side environment variables anywhere the app runs:
+
+```bash
+OPENAI_API_KEY=your_openai_api_key
+OPENAI_RECIPE_IMPORT_MODEL=gpt-4.1-mini
+```
+
+Notes:
+
+- `OPENAI_API_KEY` is required for recipe imports and must only be configured on the server, not as a `NEXT_PUBLIC_` variable.
+- `OPENAI_RECIPE_IMPORT_MODEL` is optional. The code defaults to `gpt-4.1-mini`, but you can swap in another supported OpenAI model if you want a different quality/cost tradeoff.
+- In Vercel, add both variables under Project Settings -> Environment Variables for the environments you want (`Development`, `Preview`, and/or `Production`).
+- For local development, place the variables in `.env.local`.
+- Saving the imported draft as a real recipe still depends on the existing Supabase admin/server variables already used by `/api/admin/recipes`.
+- `NEXT_PUBLIC_LOCAL_AUTH_BYPASS=true` can still be useful locally if you want to test the admin create flow without signing in, but do not set that bypass in production.
+
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:
