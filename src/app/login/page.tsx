@@ -3,6 +3,9 @@
 import { supabaseBrowserClient } from '@/lib/supabase/client'
 
 export default function LoginPage() {
+  const isLocalAuthBypassEnabled =
+    process.env.NEXT_PUBLIC_LOCAL_AUTH_BYPASS === 'true'
+
   async function signInWithGoogle() {
     const baseUrl = window.location.origin
     const redirectUrl = new URL('/auth/callback', baseUrl).toString()
@@ -18,11 +21,20 @@ export default function LoginPage() {
     <main className="min-h-screen flex items-center justify-center p-6">
       <div className="w-full max-w-sm rounded-xl border p-6">
         <h1 className="text-2xl font-bold mb-4">Sign in</h1>
+        {isLocalAuthBypassEnabled ? (
+          <p className="mb-4 text-sm text-neutral-600">
+            Local auth bypass is enabled. Google sign-in is not required on this
+            machine while testing.
+          </p>
+        ) : null}
         <button
           onClick={signInWithGoogle}
           className="w-full rounded-md bg-black text-white py-2"
+          disabled={isLocalAuthBypassEnabled}
         >
-          Continue with Google
+          {isLocalAuthBypassEnabled
+            ? 'Google sign-in disabled locally'
+            : 'Continue with Google'}
         </button>
       </div>
     </main>

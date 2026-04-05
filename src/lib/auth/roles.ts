@@ -1,4 +1,5 @@
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+import { getLocalAuthBypassUser, isLocalAuthBypassEnabled } from "@/lib/auth/local";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export const ADMIN_ROLE = "admin";
@@ -7,6 +8,10 @@ export const USER_ROLE = "user";
 export type AppRole = typeof ADMIN_ROLE | typeof USER_ROLE;
 
 export async function getCurrentUser() {
+  if (isLocalAuthBypassEnabled()) {
+    return getLocalAuthBypassUser();
+  }
+
   const supabase = await createSupabaseServerClient();
   const {
     data: { user },
@@ -36,6 +41,10 @@ export async function getRoleForUserId(userId: string): Promise<AppRole> {
 }
 
 export async function getCurrentUserRole(): Promise<AppRole | null> {
+  if (isLocalAuthBypassEnabled()) {
+    return ADMIN_ROLE;
+  }
+
   const user = await getCurrentUser();
   if (!user) {
     return null;

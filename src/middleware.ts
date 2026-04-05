@@ -3,6 +3,7 @@ import type { NextRequest } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
 
 import { ADMIN_ROLE } from '@/lib/auth/roles'
+import { isLocalAuthBypassEnabled } from '@/lib/auth/local'
 
 const adminPathPrefixes = ['/admin']
 const publicPaths = ['/login', '/auth/callback']
@@ -21,6 +22,10 @@ export async function middleware(request: NextRequest) {
   const response = NextResponse.next()
 
   if (publicPaths.some((path) => nextUrl.pathname.startsWith(path))) {
+    return response
+  }
+
+  if (isLocalAuthBypassEnabled()) {
     return response
   }
 

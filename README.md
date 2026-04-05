@@ -32,6 +32,18 @@ If you see `Error 400: redirect_uri_mismatch` on the Google sign-in page, make s
 
 The app uses the current site origin as the OAuth redirect target and routes it through `/auth/callback`, so both Supabase and Google must allow those URLs. `src/app/login/page.tsx` builds the redirect URL from `window.location.origin` and `/auth/callback`. `src/app/auth/callback/route.ts` exchanges the code and redirects back to `/`.
 
+## Local auth bypass for testing
+
+If you want to skip Google sign-in on your local machine while testing UI flows, add this to `.env.local`:
+
+```bash
+NEXT_PUBLIC_LOCAL_AUTH_BYPASS=true
+```
+
+This bypass is only honored outside production. It skips the middleware login redirect and treats local admin checks as authenticated so you can test admin UI flows such as recipe import and recipe creation.
+
+Important: this does not create a real Supabase session or an `auth.users` record, so features that depend on authenticated database rows and row-level security, such as household membership and shopping list ownership, still need a real signed-in user.
+
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:

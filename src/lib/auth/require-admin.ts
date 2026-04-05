@@ -1,9 +1,17 @@
 import { NextResponse } from "next/server";
 
+import { getLocalAuthBypassUser, isLocalAuthBypassEnabled } from "@/lib/auth/local";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { ADMIN_ROLE } from "@/lib/auth/roles";
 
 export async function ensureAdminRequest() {
+  if (isLocalAuthBypassEnabled()) {
+    return {
+      user: getLocalAuthBypassUser(),
+      unauthorizedResponse: null,
+    };
+  }
+
   const supabase = await createSupabaseServerClient();
   const {
     data: { user },
