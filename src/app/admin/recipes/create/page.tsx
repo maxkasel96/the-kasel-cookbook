@@ -3,6 +3,10 @@
 import { useEffect, useMemo, useState } from "react";
 
 import { trackAdminRecipeCreated } from "@/lib/analytics/track";
+import {
+  RECIPE_IMPORT_DRAFT_STORAGE_KEY,
+  type ImportedRecipeDraft,
+} from "@/lib/recipe-import";
 
 type Ingredient = {
   id: string;
@@ -114,6 +118,62 @@ export default function AdminCreateRecipePage() {
     return () => {
       isMounted = false;
     };
+  }, []);
+
+  useEffect(() => {
+    const rawDraft = window.localStorage.getItem(RECIPE_IMPORT_DRAFT_STORAGE_KEY);
+    if (!rawDraft) return;
+
+    try {
+      const importedDraft = JSON.parse(rawDraft) as ImportedRecipeDraft;
+      const importedTitle = importedDraft.title.trim();
+      const importedIngredients = importedDraft.ingredients
+        .map((ingredient) => ({
+          id: createId(),
+          ingredientText: ingredient.text?.trim() ?? "",
+          quantity: ingredient.quantity?.trim() ?? "",
+          unit: ingredient.unit?.trim() ?? "",
+          note: ingredient.note?.trim() ?? "",
+          isOptional: ingredient.optional ?? false,
+          assignedStepIds: [],
+        }))
+        .filter(
+          (ingredient) =>
+            ingredient.ingredientText ||
+            ingredient.quantity ||
+            ingredient.unit ||
+            ingredient.note
+        );
+      const importedSteps = importedDraft.steps
+        .map((step) => ({
+          id: createId(),
+          content: step.trim(),
+        }))
+        .filter((step) => step.content);
+
+      if (importedTitle) {
+        setTitle(importedTitle);
+      }
+
+      setMetadata({
+        prepMinutes: importedDraft.prepMinutes?.trim() ?? "",
+        cookMinutes: importedDraft.cookMinutes?.trim() ?? "",
+        servings: importedDraft.servings?.trim() ?? "",
+      });
+      setDescription(importedDraft.description?.trim() ?? "");
+
+      if (importedIngredients.length > 0) {
+        setIngredients(importedIngredients);
+      }
+      if (importedSteps.length > 0) {
+        setSteps(importedSteps);
+      }
+
+      setFormStatus("Imported recipe draft loaded from Recipe Input.");
+      window.localStorage.removeItem(RECIPE_IMPORT_DRAFT_STORAGE_KEY);
+    } catch {
+      setFormError("Unable to read imported recipe draft.");
+    }
   }, []);
 
   useEffect(() => {
