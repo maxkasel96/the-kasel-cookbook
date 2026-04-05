@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 
+import RecipeEditorForm from "@/components/recipe-editor-form";
 import RecipeImportPanel from "@/components/recipe-import-panel";
 import { trackAdminRecipeCreated } from "@/lib/analytics/track";
 import {
@@ -89,12 +90,6 @@ export default function AdminCreateRecipePage() {
   const [newCategoryName, setNewCategoryName] = useState("");
   const [categorySearchTerm, setCategorySearchTerm] = useState("");
   const [categorySelectValue, setCategorySelectValue] = useState("");
-
-  const ingredientCount = useMemo(
-    () => ingredients.filter((ingredient) => ingredient.ingredientText.trim())
-      .length,
-    [ingredients]
-  );
 
   const applyImportedDraft = (
     importedDraft: ImportedRecipeDraft,
@@ -558,26 +553,26 @@ export default function AdminCreateRecipePage() {
   };
 
   return (
-    <div className="min-h-screen bg-background px-6 py-12 text-foreground">
-      <main className="mx-auto flex w-full max-w-5xl flex-col gap-10">
+    <div className="min-h-screen bg-background text-foreground">
+      <main className="mx-auto flex w-full max-w-[88rem] flex-col gap-6 px-4 py-6 sm:px-6 sm:py-8 lg:gap-8 lg:px-8 lg:py-10">
         <header className="flex flex-col gap-3">
-          <p className="text-sm font-semibold uppercase tracking-[0.2em] text-accent-2">
+          <p className="recipe-editor-page-kicker">
             Admin
           </p>
-          <h1 className="text-4xl font-semibold text-foreground">Create recipe</h1>
-          <p className="max-w-2xl text-base leading-7 text-text-muted">
+          <h1 className="recipe-editor-page-title">Create recipe</h1>
+          <p className="recipe-editor-page-intro">
             Capture recipe descriptions, ingredient quantities, and preparation
             instructions before saving them to the database. You must be signed
             in with Google to access this page.
           </p>
         </header>
 
-        <section className="grid gap-4 md:grid-cols-2">
+        <section className="recipe-start-selector">
           <button
-            className={`rounded-3xl border p-6 text-left shadow-sm transition ${
+            className={`recipe-start-option ${
               startMode === "copy"
-                ? "border-accent-2 bg-surface"
-                : "border-border bg-surface hover:border-accent-2"
+                ? "recipe-start-option--active"
+                : ""
             }`}
             type="button"
             onClick={() => {
@@ -585,20 +580,22 @@ export default function AdminCreateRecipePage() {
               setStartMode("copy");
             }}
           >
-            <p className="text-sm font-semibold uppercase tracking-[0.2em] text-accent-2">
-              Option 1
-            </p>
-            <h2 className="mt-3 text-2xl font-semibold">Copy from URL</h2>
-            <p className="mt-2 text-sm leading-6 text-text-muted">
-              Paste a recipe page link and let OpenAI prefill ingredients,
-              preparation steps, and assigned ingredient matches for review.
-            </p>
+            <span className="recipe-start-option__indicator" aria-hidden="true" />
+            <div className="recipe-start-option__body">
+              <p className="recipe-start-option__eyebrow">Entry method</p>
+              <h2 className="recipe-start-option__title">Copy from URL</h2>
+              <p className="recipe-start-option__description">
+                Paste a recipe page link and let OpenAI prefill ingredients,
+                preparation steps, and ingredient matches for review.
+              </p>
+            </div>
           </button>
+
           <button
-            className={`rounded-3xl border p-6 text-left shadow-sm transition ${
+            className={`recipe-start-option ${
               startMode === "custom"
-                ? "border-accent-2 bg-surface"
-                : "border-border bg-surface hover:border-accent-2"
+                ? "recipe-start-option--active"
+                : ""
             }`}
             type="button"
             onClick={() => {
@@ -607,564 +604,124 @@ export default function AdminCreateRecipePage() {
               setStartMode("custom");
             }}
           >
-            <p className="text-sm font-semibold uppercase tracking-[0.2em] text-accent-2">
-              Option 2
-            </p>
-            <h2 className="mt-3 text-2xl font-semibold">Custom Recipe</h2>
-            <p className="mt-2 text-sm leading-6 text-text-muted">
-              Start from a blank form and write the full recipe manually.
-            </p>
+            <span className="recipe-start-option__indicator" aria-hidden="true" />
+            <div className="recipe-start-option__body">
+              <p className="recipe-start-option__eyebrow">Entry method</p>
+              <h2 className="recipe-start-option__title">Custom recipe</h2>
+              <p className="recipe-start-option__description">
+                Start from a blank form and write the recipe manually.
+              </p>
+            </div>
           </button>
         </section>
 
-        {startMode === null ? (
-          <section className="rounded-3xl border border-dashed border-border-strong bg-surface px-6 py-8 text-sm text-text-muted">
-            Choose how you want to start this recipe. You can import from a URL
-            first or jump straight into a blank custom recipe form.
-          </section>
-        ) : null}
+        <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_20rem] xl:items-start">
+          <div className="flex min-w-0 flex-col gap-5 lg:gap-6">
+            {startMode === null ? (
+              <section className="recipe-editor-empty-state">
+                Choose how you want to start this recipe. Import from a URL or
+                jump straight into a custom draft.
+              </section>
+            ) : null}
 
-        {startMode === "copy" ? (
-          <RecipeImportPanel
-            onUseDraft={(draft) => applyImportedDraft(draft)}
-            useDraftButtonLabel="Use in Create Recipe"
-            title="Copy Recipe from URL"
-            description="Paste a recipe URL to generate a draft that will open directly in the Create Recipe form."
-            headerActions={
-              <button
-                className="rounded-lg border border-border px-3 py-1.5 text-sm font-medium"
-                type="button"
-                onClick={() => setStartMode("custom")}
-              >
-                Custom Recipe
-              </button>
-            }
-          />
-        ) : null}
-
-        {startMode === "custom" ? (
-        <form className="flex flex-col gap-10 rounded-3xl border border-border bg-surface p-8 shadow-sm">
-          <section className="flex flex-col gap-5">
-            <h2 className="text-xl font-semibold">Recipe details</h2>
-            <div className="grid gap-4 md:grid-cols-2">
-              <label className="flex flex-col gap-2 text-sm font-medium">
-                Title
-                <input
-                  className="h-12 rounded-2xl border border-border bg-surface-2 px-4 text-base text-foreground focus:border-focus focus:outline-none focus:ring-2 focus:ring-focus/40"
-                  placeholder="Citrus herb chicken"
-                  value={title}
-                  onChange={(event) => setTitle(event.target.value)}
-                />
-              </label>
-              <div className="rounded-2xl border border-dashed border-border-strong bg-surface-2 px-4 py-3 text-sm text-text-muted">
-                Slugs are generated automatically from the recipe title when you
-                save.
-              </div>
-            </div>
-            <div className="grid gap-4 md:grid-cols-3">
-              <label className="flex flex-col gap-2 text-sm font-medium">
-                Prep minutes
-                <input
-                  className="h-12 rounded-2xl border border-border bg-surface-2 px-4 text-base text-foreground focus:border-focus focus:outline-none focus:ring-2 focus:ring-focus/40"
-                  inputMode="numeric"
-                  placeholder="20"
-                  value={metadata.prepMinutes}
-                  onChange={(event) =>
-                    setMetadata((prev) => ({
-                      ...prev,
-                      prepMinutes: event.target.value,
-                    }))
-                  }
-                />
-              </label>
-              <label className="flex flex-col gap-2 text-sm font-medium">
-                Cook minutes
-                <input
-                  className="h-12 rounded-2xl border border-border bg-surface-2 px-4 text-base text-foreground focus:border-focus focus:outline-none focus:ring-2 focus:ring-focus/40"
-                  inputMode="numeric"
-                  placeholder="45"
-                  value={metadata.cookMinutes}
-                  onChange={(event) =>
-                    setMetadata((prev) => ({
-                      ...prev,
-                      cookMinutes: event.target.value,
-                    }))
-                  }
-                />
-              </label>
-              <label className="flex flex-col gap-2 text-sm font-medium">
-                Servings
-                <input
-                  className="h-12 rounded-2xl border border-border bg-surface-2 px-4 text-base text-foreground focus:border-focus focus:outline-none focus:ring-2 focus:ring-focus/40"
-                  inputMode="numeric"
-                  placeholder="4"
-                  value={metadata.servings}
-                  onChange={(event) =>
-                    setMetadata((prev) => ({
-                      ...prev,
-                      servings: event.target.value,
-                    }))
-                  }
-                />
-              </label>
-            </div>
-            <label className="flex flex-col gap-2 text-sm font-medium">
-              Description
-              <textarea
-                className="min-h-[120px] rounded-2xl border border-border bg-surface-2 px-4 py-3 text-base text-foreground focus:border-focus focus:outline-none focus:ring-2 focus:ring-focus/40"
-                placeholder="Bright, savory chicken with citrus zest and herbs."
-                value={description}
-                onChange={(event) => setDescription(event.target.value)}
+            {startMode === "copy" ? (
+              <RecipeImportPanel
+                onUseDraft={(draft) => applyImportedDraft(draft)}
+                useDraftButtonLabel="Use in Create Recipe"
+                title="Copy Recipe from URL"
+                description="Paste a recipe URL to generate a draft that will open directly in the Create Recipe form."
+                headerActions={
+                  <button
+                    className="recipe-editor-inline-action"
+                    type="button"
+                    onClick={() => setStartMode("custom")}
+                  >
+                    Custom recipe
+                  </button>
+                }
               />
-            </label>
-            <div className="flex flex-col gap-4 rounded-3xl border border-border bg-surface-2 p-6">
-              <div className="flex flex-col gap-2">
-                <h3 className="text-base font-semibold">Tags & categories</h3>
-                <p className="text-sm text-text-muted">
-                  Set recipe tags and categories independently to organize your
-                  recipes.
-                </p>
-              </div>
-              <div className="grid gap-6 lg:grid-cols-2">
-                <div className="flex flex-col gap-4 rounded-2xl border border-border bg-surface px-4 py-4">
-                  <div>
-                    <p className="text-xs font-semibold uppercase tracking-[0.2em] text-text-muted">
-                      Tags
-                    </p>
-                    <p className="mt-2 text-sm text-text-muted">
-                      Select existing tags or add a new tag.
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-xs font-semibold uppercase tracking-[0.2em] text-text-muted">
-                      Existing tags
-                    </p>
-                    {isLoadingTags ? (
-                      <p className="mt-3 text-sm text-text-muted">
-                        Loading tags...
-                      </p>
-                    ) : availableTags.length ? (
-                      <>
-                        <input
-                          className="mt-3 h-11 w-full rounded-2xl border border-border bg-surface px-4 text-base text-foreground focus:border-focus focus:outline-none focus:ring-2 focus:ring-focus/40"
-                          placeholder="Search tags"
-                          value={tagSearchTerm}
-                          onChange={(event) => setTagSearchTerm(event.target.value)}
-                        />
-                        {filteredTags.length ? (
-                          <select
-                            className="mt-3 h-11 w-full rounded-2xl border border-border bg-surface px-4 text-base text-foreground focus:border-focus focus:outline-none focus:ring-2 focus:ring-focus/40"
-                            value={tagSelectValue}
-                            onChange={(event) => {
-                              const value = event.target.value;
-                              setTagSelectValue(value);
-                              handleSelectTag(value);
-                            }}
-                          >
-                            <option value="">Select a tag</option>
-                            {filteredTags.map((tag) => (
-                              <option key={tag.id} value={tag.id}>
-                                {tag.name}
-                              </option>
-                            ))}
-                          </select>
-                        ) : (
-                          <p className="mt-3 text-sm text-text-muted">
-                            No tags match your search.
-                          </p>
-                        )}
-                      </>
-                    ) : (
-                      <p className="mt-3 text-sm text-text-muted">
-                        No existing tags found.
-                      </p>
-                    )}
-                  </div>
-                  <label className="flex flex-col gap-2 text-sm font-medium">
-                    Add a new tag
-                    <div className="flex flex-wrap gap-3">
-                      <input
-                        className="h-11 flex-1 rounded-2xl border border-border bg-surface px-4 text-base text-foreground focus:border-focus focus:outline-none focus:ring-2 focus:ring-focus/40"
-                        placeholder="Seasonal"
-                        value={newTagName}
-                        onChange={(event) => setNewTagName(event.target.value)}
-                      />
-                      <button
-                        className="rounded-full border border-border-strong px-4 py-2 text-sm font-semibold text-foreground transition hover:border-accent-2 hover:text-accent-2"
-                        type="button"
-                        onClick={addNewTag}
-                      >
-                        Add new tag
-                      </button>
-                    </div>
-                  </label>
-                  <div className="flex flex-col gap-2">
-                    <p className="text-sm font-semibold text-text-muted">
-                      Selected tags
-                    </p>
-                    {selectedTags.length ? (
-                      <div className="flex flex-wrap gap-2">
-                        {selectedTags.map((tag) => (
-                          <button
-                            key={tag.id}
-                            className="rounded-full border border-border-strong px-4 py-1 text-sm font-semibold text-foreground transition hover:border-danger hover:text-danger"
-                            type="button"
-                            onClick={() => removeSelectedTag(tag)}
-                          >
-                            {tag.name} ×
-                          </button>
-                        ))}
-                      </div>
-                    ) : (
-                      <p className="text-sm text-text-muted">
-                        No tags selected yet.
-                      </p>
-                    )}
-                  </div>
-                </div>
-                <div className="flex flex-col gap-4 rounded-2xl border border-border bg-surface px-4 py-4">
-                  <div>
-                    <p className="text-xs font-semibold uppercase tracking-[0.2em] text-text-muted">
-                      Categories
-                    </p>
-                    <p className="mt-2 text-sm text-text-muted">
-                      Select existing categories or add a new category.
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-xs font-semibold uppercase tracking-[0.2em] text-text-muted">
-                      Existing categories
-                    </p>
-                    {isLoadingCategories ? (
-                      <p className="mt-3 text-sm text-text-muted">
-                        Loading categories...
-                      </p>
-                    ) : availableCategories.length ? (
-                      <>
-                        <input
-                          className="mt-3 h-11 w-full rounded-2xl border border-border bg-surface px-4 text-base text-foreground focus:border-focus focus:outline-none focus:ring-2 focus:ring-focus/40"
-                          placeholder="Search categories"
-                          value={categorySearchTerm}
-                          onChange={(event) =>
-                            setCategorySearchTerm(event.target.value)
-                          }
-                        />
-                        {filteredCategories.length ? (
-                          <select
-                            className="mt-3 h-11 w-full rounded-2xl border border-border bg-surface px-4 text-base text-foreground focus:border-focus focus:outline-none focus:ring-2 focus:ring-focus/40"
-                            value={categorySelectValue}
-                            onChange={(event) => {
-                              const value = event.target.value;
-                              setCategorySelectValue(value);
-                              handleSelectCategory(value);
-                            }}
-                          >
-                            <option value="">Select a category</option>
-                            {filteredCategories.map((category) => (
-                              <option key={category.id} value={category.id}>
-                                {category.name}
-                              </option>
-                            ))}
-                          </select>
-                        ) : (
-                          <p className="mt-3 text-sm text-text-muted">
-                            No categories match your search.
-                          </p>
-                        )}
-                      </>
-                    ) : (
-                      <p className="mt-3 text-sm text-text-muted">
-                        No existing categories found.
-                      </p>
-                    )}
-                  </div>
-                  <label className="flex flex-col gap-2 text-sm font-medium">
-                    Add a new category
-                    <div className="flex flex-wrap gap-3">
-                      <input
-                        className="h-11 flex-1 rounded-2xl border border-border bg-surface px-4 text-base text-foreground focus:border-focus focus:outline-none focus:ring-2 focus:ring-focus/40"
-                        placeholder="Dinner"
-                        value={newCategoryName}
-                        onChange={(event) =>
-                          setNewCategoryName(event.target.value)
-                        }
-                      />
-                      <button
-                        className="rounded-full border border-border-strong px-4 py-2 text-sm font-semibold text-foreground transition hover:border-accent-2 hover:text-accent-2"
-                        type="button"
-                        onClick={addNewCategory}
-                      >
-                        Add new category
-                      </button>
-                    </div>
-                  </label>
-                  <div className="flex flex-col gap-2">
-                    <p className="text-sm font-semibold text-text-muted">
-                      Selected categories
-                    </p>
-                    {selectedCategories.length ? (
-                      <div className="flex flex-wrap gap-2">
-                        {selectedCategories.map((category) => (
-                          <button
-                            key={category.id}
-                            className="rounded-full border border-border-strong px-4 py-1 text-sm font-semibold text-foreground transition hover:border-danger hover:text-danger"
-                            type="button"
-                            onClick={() => removeSelectedCategory(category)}
-                          >
-                            {category.name} ×
-                          </button>
-                        ))}
-                      </div>
-                    ) : (
-                      <p className="text-sm text-text-muted">
-                        No categories selected yet.
-                      </p>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </section>
-
-          <section className="flex flex-col gap-5">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <div>
-                <h2 className="text-xl font-semibold">Ingredients</h2>
-                <p className="text-sm text-text-muted">
-                  {ingredientCount || 0} ingredient{ingredientCount === 1 ? "" : "s"} listed
-                </p>
-              </div>
-            </div>
-
-            <div className="flex flex-col gap-4">
-              {ingredients.map((ingredient, index) => (
-                <div
-                  key={ingredient.id}
-                  className="rounded-3xl border border-border bg-surface-2 p-5"
-                >
-                  <div className="mb-4 flex items-center justify-between gap-3">
-                    <p className="text-sm font-semibold text-text-muted">
-                      Ingredient {index + 1}
-                    </p>
-                    <button
-                      className="text-xs font-semibold uppercase tracking-[0.2em] text-danger transition hover:text-accent"
-                      type="button"
-                      onClick={() => removeIngredient(ingredient.id)}
-                    >
-                      Remove
-                    </button>
-                  </div>
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <label className="flex flex-col gap-2 text-sm font-medium">
-                      Ingredient
-                      <input
-                        className="h-11 rounded-2xl border border-border bg-surface px-4 text-base text-foreground focus:border-focus focus:outline-none focus:ring-2 focus:ring-focus/40"
-                        placeholder="Chicken thighs"
-                        value={ingredient.ingredientText}
-                        onChange={(event) =>
-                          handleIngredientChange(
-                            ingredient.id,
-                            "ingredientText",
-                            event.target.value
-                          )
-                        }
-                      />
-                    </label>
-                    <div className="grid gap-4 sm:grid-cols-2">
-                      <label className="flex flex-col gap-2 text-sm font-medium">
-                        Quantity
-                        <input
-                          className="h-11 rounded-2xl border border-border bg-surface px-4 text-base text-foreground focus:border-focus focus:outline-none focus:ring-2 focus:ring-focus/40"
-                          inputMode="decimal"
-                          placeholder="1.5"
-                          value={ingredient.quantity}
-                          onChange={(event) =>
-                            handleIngredientChange(
-                              ingredient.id,
-                              "quantity",
-                              event.target.value
-                            )
-                          }
-                        />
-                      </label>
-                      <label className="flex flex-col gap-2 text-sm font-medium">
-                        Unit
-                        <input
-                          className="h-11 rounded-2xl border border-border bg-surface px-4 text-base text-foreground focus:border-focus focus:outline-none focus:ring-2 focus:ring-focus/40"
-                          placeholder="lbs"
-                          value={ingredient.unit}
-                          onChange={(event) =>
-                            handleIngredientChange(
-                              ingredient.id,
-                              "unit",
-                              event.target.value
-                            )
-                          }
-                        />
-                      </label>
-                    </div>
-                  </div>
-                  <div className="mt-4 grid gap-4 md:grid-cols-[2fr,1fr]">
-                    <label className="flex flex-col gap-2 text-sm font-medium">
-                      Note
-                      <input
-                        className="h-11 rounded-2xl border border-border bg-surface px-4 text-base text-foreground focus:border-focus focus:outline-none focus:ring-2 focus:ring-focus/40"
-                        placeholder="Finely chopped"
-                        value={ingredient.note}
-                        onChange={(event) =>
-                          handleIngredientChange(
-                            ingredient.id,
-                            "note",
-                            event.target.value
-                          )
-                        }
-                      />
-                    </label>
-                    <label className="flex items-center gap-3 text-sm font-medium">
-                      <input
-                        className="h-4 w-4 rounded border-border"
-                        type="checkbox"
-                        checked={ingredient.isOptional}
-                        onChange={(event) =>
-                          handleIngredientChange(
-                            ingredient.id,
-                            "isOptional",
-                            event.target.checked
-                          )
-                        }
-                      />
-                      Optional ingredient
-                    </label>
-                  </div>
-                </div>
-              ))}
-            </div>
-            <button
-              className="self-start rounded-full border border-border-strong px-5 py-2 text-sm font-semibold text-foreground transition hover:border-accent-2 hover:text-accent-2"
-              type="button"
-              onClick={addIngredient}
-            >
-              Add ingredient
-            </button>
-          </section>
-
-          <section className="flex flex-col gap-5">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <div>
-                <h2 className="text-xl font-semibold">Preparation steps</h2>
-                <p className="text-sm text-text-muted">
-                  Order your instructions as they should appear in the recipe.
-                </p>
-              </div>
-            </div>
-
-            <div className="flex flex-col gap-4">
-              {steps.map((step, index) => (
-                <div
-                  key={step.id}
-                  className="rounded-3xl border border-border bg-surface-2 p-5"
-                >
-                  <div className="mb-4 flex items-center justify-between gap-3">
-                    <p className="text-sm font-semibold text-text-muted">Step {index + 1}</p>
-                    <button
-                      className="text-xs font-semibold uppercase tracking-[0.2em] text-danger transition hover:text-accent"
-                      type="button"
-                      onClick={() => removeStep(step.id)}
-                    >
-                      Remove
-                    </button>
-                  </div>
-                  <textarea
-                    className="min-h-[120px] w-full rounded-2xl border border-border bg-surface px-4 py-3 text-base text-foreground focus:border-focus focus:outline-none focus:ring-2 focus:ring-focus/40"
-                    placeholder="Describe the prep work for this step."
-                    value={step.content}
-                    onChange={(event) => handleStepChange(step.id, event.target.value)}
-                  />
-                  <div className="mt-4 rounded-2xl border border-border bg-surface px-4 py-3">
-                    <p className="text-xs font-semibold uppercase tracking-[0.2em] text-text-muted">
-                      Assigned ingredients
-                    </p>
-                    {ingredientCount ? (
-                      <div className="mt-3 grid gap-2 sm:grid-cols-2">
-                        {ingredients.map((ingredient, ingredientIndex) => {
-                          const label = ingredient.ingredientText.trim()
-                            ? ingredient.ingredientText.trim()
-                            : `Ingredient ${ingredientIndex + 1}`;
-                          return (
-                            <label
-                              key={ingredient.id}
-                              className="flex items-center gap-2 text-sm font-medium"
-                            >
-                              <input
-                                className="h-4 w-4 rounded border-border"
-                                type="checkbox"
-                                checked={ingredient.assignedStepIds.includes(step.id)}
-                                onChange={() =>
-                                  toggleIngredientStep(ingredient.id, step.id)
-                                }
-                              />
-                              {label}
-                            </label>
-                          );
-                        })}
-                      </div>
-                    ) : (
-                      <p className="mt-2 text-sm text-text-muted">
-                        Add ingredients above to assign them to this step.
-                      </p>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-            <button
-              className="self-start rounded-full border border-border-strong px-5 py-2 text-sm font-semibold text-foreground transition hover:border-accent-2 hover:text-accent-2"
-              type="button"
-              onClick={addStep}
-            >
-              Add step
-            </button>
-          </section>
-
-          <section className="flex flex-col gap-4 rounded-3xl border border-border bg-surface-2 p-6">
-            <h2 className="text-lg font-semibold">Ready to save?</h2>
-            <p className="text-sm text-text-muted">
-              Saving will create entries in <code>recipes</code>,
-              <code> recipe_ingredients</code>, and
-              <code> recipe_instruction_steps</code>. This form now posts to
-              <code> /api/admin/recipes</code> when saving.
-            </p>
-            {formError ? (
-              <p className="rounded-2xl border border-danger/30 bg-danger/10 px-4 py-3 text-sm text-danger">
-                {formError}
-              </p>
             ) : null}
-            {formStatus ? (
-              <p className="rounded-2xl border border-success/30 bg-success/10 px-4 py-3 text-sm text-success">
-                {formStatus}
-              </p>
+
+            {startMode === "custom" ? (
+              <RecipeEditorForm
+                availableCategories={availableCategories}
+                availableTags={availableTags}
+                categorySearchTerm={categorySearchTerm}
+                categorySelectValue={categorySelectValue}
+                cookMinutes={metadata.cookMinutes}
+                description={description}
+                detailsHint={
+                  <>
+                    Slugs are generated automatically from the recipe title
+                    when you save.
+                  </>
+                }
+                filteredCategories={filteredCategories}
+                filteredTags={filteredTags}
+                formError={formError}
+                formStatus={formStatus}
+                ingredients={ingredients}
+                isLoadingCategories={isLoadingCategories}
+                isLoadingTags={isLoadingTags}
+                isSaving={isSaving}
+                newCategoryName={newCategoryName}
+                newTagName={newTagName}
+                onAddIngredient={addIngredient}
+                onAddNewCategory={addNewCategory}
+                onAddNewTag={addNewTag}
+                onAddStep={addStep}
+                onCategorySearchTermChange={setCategorySearchTerm}
+                onCategorySelectValueChange={setCategorySelectValue}
+                onCookMinutesChange={(value) =>
+                  setMetadata((prev) => ({ ...prev, cookMinutes: value }))
+                }
+                onDescriptionChange={setDescription}
+                onHandleIngredientChange={handleIngredientChange}
+                onHandleStepChange={handleStepChange}
+                onNewCategoryNameChange={setNewCategoryName}
+                onNewTagNameChange={setNewTagName}
+                onPrepMinutesChange={(value) =>
+                  setMetadata((prev) => ({ ...prev, prepMinutes: value }))
+                }
+                onPrimaryAction={() => handleSave("published")}
+                onRemoveIngredient={removeIngredient}
+                onRemoveSelectedCategory={removeSelectedCategory}
+                onRemoveSelectedTag={removeSelectedTag}
+                onRemoveStep={removeStep}
+                onSelectCategory={handleSelectCategory}
+                onSelectTag={handleSelectTag}
+                onServingsChange={(value) =>
+                  setMetadata((prev) => ({ ...prev, servings: value }))
+                }
+                tagSearchTerm={tagSearchTerm}
+                tagSelectValue={tagSelectValue}
+                onTagSearchTermChange={setTagSearchTerm}
+                onTagSelectValueChange={setTagSelectValue}
+                onTitleChange={setTitle}
+                onToggleIngredientStep={toggleIngredientStep}
+                prepMinutes={metadata.prepMinutes}
+                primaryActionLabel="Save recipe"
+                primaryActionPendingLabel="Saving..."
+                selectedCategories={selectedCategories}
+                selectedTags={selectedTags}
+                servings={metadata.servings}
+                steps={steps}
+                title={title}
+              />
             ) : null}
-            <div className="flex flex-wrap gap-3">
-              <button
-                className="rounded-full bg-accent px-6 py-2 text-sm font-semibold text-white transition hover:bg-danger"
-                type="button"
-                onClick={() => handleSave("published")}
-                disabled={isSaving}
-              >
-                {isSaving ? "Saving..." : "Save recipe"}
-              </button>
-              <button
-                className="rounded-full border border-border-strong px-6 py-2 text-sm font-semibold text-foreground transition hover:border-accent-2 hover:text-accent-2"
-                type="button"
-                onClick={() => handleSave("draft")}
-                disabled={isSaving}
-              >
-                Save as draft
-              </button>
+          </div>
+
+          <aside className="hidden xl:block">
+            <div className="recipe-editor-side-note">
+              <p className="recipe-editor-side-note__eyebrow">Desktop flow</p>
+              <p className="recipe-editor-side-note__copy">
+                The custom recipe form opens with a sticky save rail and a
+                lighter structured editor. Switch to “Custom recipe” to work in
+                the full two-column layout.
+              </p>
             </div>
-          </section>
-        </form>
-        ) : null}
+          </aside>
+        </div>
       </main>
     </div>
   );
