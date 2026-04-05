@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 
+import RecipeImportPanel from "@/components/recipe-import-panel";
 import { trackAdminRecipeCreated } from "@/lib/analytics/track";
 import {
   RECIPE_IMPORT_DRAFT_STORAGE_KEY,
@@ -34,12 +35,30 @@ type CategoryOption = {
   name: string;
 };
 
+type RecipeStartMode = "copy" | "custom" | null;
+
 const createId = () =>
   typeof crypto !== "undefined" && "randomUUID" in crypto
     ? crypto.randomUUID()
     : `temp-${Date.now()}-${Math.random()}`;
 
+const createEmptyIngredient = (): Ingredient => ({
+  id: createId(),
+  ingredientText: "",
+  quantity: "",
+  unit: "",
+  note: "",
+  isOptional: false,
+  assignedStepIds: [],
+});
+
+const createEmptyStep = (): InstructionStep => ({
+  id: createId(),
+  content: "",
+});
+
 export default function AdminCreateRecipePage() {
+  const [startMode, setStartMode] = useState<RecipeStartMode>(null);
   const [title, setTitle] = useState("");
   const [metadata, setMetadata] = useState({
     prepMinutes: "",
@@ -53,19 +72,9 @@ export default function AdminCreateRecipePage() {
   const [formError, setFormError] = useState<string | null>(null);
   const [formStatus, setFormStatus] = useState<string | null>(null);
   const [ingredients, setIngredients] = useState<Ingredient[]>([
-    {
-      id: createId(),
-      ingredientText: "",
-      quantity: "",
-      unit: "",
-      note: "",
-      isOptional: false,
-      assignedStepIds: [],
-    },
+    createEmptyIngredient(),
   ]);
-  const [steps, setSteps] = useState<InstructionStep[]>([
-    { id: createId(), content: "" },
-  ]);
+  const [steps, setSteps] = useState<InstructionStep[]>([createEmptyStep()]);
   const [availableTags, setAvailableTags] = useState<TagOption[]>([]);
   const [selectedTags, setSelectedTags] = useState<TagOption[]>([]);
   const [newTagName, setNewTagName] = useState("");
@@ -86,6 +95,64 @@ export default function AdminCreateRecipePage() {
       .length,
     [ingredients]
   );
+
+  const applyImportedDraft = (
+    importedDraft: ImportedRecipeDraft,
+    statusMessage = "Imported recipe draft loaded. Review and save when ready."
+  ) => {
+    const importedTitle = importedDraft.title.trim();
+    const importedSteps = importedDraft.steps
+      .map((step) => ({
+        id: createId(),
+        content: step.trim(),
+      }))
+      .filter((step) => step.content);
+    const importedIngredients = importedDraft.ingredients
+      .map((ingredient, ingredientIndex) => ({
+        id: createId(),
+        ingredientText: ingredient.text?.trim() ?? "",
+        quantity: ingredient.quantity?.trim() ?? "",
+        unit: ingredient.unit?.trim() ?? "",
+        note: ingredient.note?.trim() ?? "",
+        isOptional: ingredient.optional ?? false,
+        assignedStepIds: importedSteps
+          .filter((step, stepIndex) =>
+            importedDraft.stepIngredientIndexes?.[stepIndex]?.includes(
+              ingredientIndex + 1
+            )
+          )
+          .map((step) => step.id),
+      }))
+      .filter(
+        (ingredient) =>
+          ingredient.ingredientText ||
+          ingredient.quantity ||
+          ingredient.unit ||
+          ingredient.note
+      );
+
+    if (importedTitle) {
+      setTitle(importedTitle);
+    }
+
+    setMetadata({
+      prepMinutes: importedDraft.prepMinutes?.trim() ?? "",
+      cookMinutes: importedDraft.cookMinutes?.trim() ?? "",
+      servings: importedDraft.servings?.trim() ?? "",
+    });
+    setDescription(importedDraft.description?.trim() ?? "");
+    setSelectedTags([]);
+    setSelectedCategories([]);
+
+    setIngredients(
+      importedIngredients.length > 0 ? importedIngredients : [createEmptyIngredient()]
+    );
+    setSteps(importedSteps.length > 0 ? importedSteps : [createEmptyStep()]);
+
+    setFormError(null);
+    setFormStatus(statusMessage);
+    setStartMode("custom");
+  };
 
   useEffect(() => {
     let isMounted = true;
@@ -126,50 +193,10 @@ export default function AdminCreateRecipePage() {
 
     try {
       const importedDraft = JSON.parse(rawDraft) as ImportedRecipeDraft;
-      const importedTitle = importedDraft.title.trim();
-      const importedIngredients = importedDraft.ingredients
-        .map((ingredient) => ({
-          id: createId(),
-          ingredientText: ingredient.text?.trim() ?? "",
-          quantity: ingredient.quantity?.trim() ?? "",
-          unit: ingredient.unit?.trim() ?? "",
-          note: ingredient.note?.trim() ?? "",
-          isOptional: ingredient.optional ?? false,
-          assignedStepIds: [],
-        }))
-        .filter(
-          (ingredient) =>
-            ingredient.ingredientText ||
-            ingredient.quantity ||
-            ingredient.unit ||
-            ingredient.note
-        );
-      const importedSteps = importedDraft.steps
-        .map((step) => ({
-          id: createId(),
-          content: step.trim(),
-        }))
-        .filter((step) => step.content);
-
-      if (importedTitle) {
-        setTitle(importedTitle);
-      }
-
-      setMetadata({
-        prepMinutes: importedDraft.prepMinutes?.trim() ?? "",
-        cookMinutes: importedDraft.cookMinutes?.trim() ?? "",
-        servings: importedDraft.servings?.trim() ?? "",
-      });
-      setDescription(importedDraft.description?.trim() ?? "");
-
-      if (importedIngredients.length > 0) {
-        setIngredients(importedIngredients);
-      }
-      if (importedSteps.length > 0) {
-        setSteps(importedSteps);
-      }
-
-      setFormStatus("Imported recipe draft loaded from Recipe Input.");
+      applyImportedDraft(
+        importedDraft,
+        "Imported recipe draft loaded from Recipe Input."
+      );
       window.localStorage.removeItem(RECIPE_IMPORT_DRAFT_STORAGE_KEY);
     } catch {
       setFormError("Unable to read imported recipe draft.");
@@ -545,6 +572,77 @@ export default function AdminCreateRecipePage() {
           </p>
         </header>
 
+        <section className="grid gap-4 md:grid-cols-2">
+          <button
+            className={`rounded-3xl border p-6 text-left shadow-sm transition ${
+              startMode === "copy"
+                ? "border-accent-2 bg-surface"
+                : "border-border bg-surface hover:border-accent-2"
+            }`}
+            type="button"
+            onClick={() => {
+              setFormError(null);
+              setStartMode("copy");
+            }}
+          >
+            <p className="text-sm font-semibold uppercase tracking-[0.2em] text-accent-2">
+              Option 1
+            </p>
+            <h2 className="mt-3 text-2xl font-semibold">Copy from URL</h2>
+            <p className="mt-2 text-sm leading-6 text-text-muted">
+              Paste a recipe page link and let OpenAI prefill ingredients,
+              preparation steps, and assigned ingredient matches for review.
+            </p>
+          </button>
+          <button
+            className={`rounded-3xl border p-6 text-left shadow-sm transition ${
+              startMode === "custom"
+                ? "border-accent-2 bg-surface"
+                : "border-border bg-surface hover:border-accent-2"
+            }`}
+            type="button"
+            onClick={() => {
+              setFormError(null);
+              setFormStatus(null);
+              setStartMode("custom");
+            }}
+          >
+            <p className="text-sm font-semibold uppercase tracking-[0.2em] text-accent-2">
+              Option 2
+            </p>
+            <h2 className="mt-3 text-2xl font-semibold">Custom Recipe</h2>
+            <p className="mt-2 text-sm leading-6 text-text-muted">
+              Start from a blank form and write the full recipe manually.
+            </p>
+          </button>
+        </section>
+
+        {startMode === null ? (
+          <section className="rounded-3xl border border-dashed border-border-strong bg-surface px-6 py-8 text-sm text-text-muted">
+            Choose how you want to start this recipe. You can import from a URL
+            first or jump straight into a blank custom recipe form.
+          </section>
+        ) : null}
+
+        {startMode === "copy" ? (
+          <RecipeImportPanel
+            onUseDraft={(draft) => applyImportedDraft(draft)}
+            useDraftButtonLabel="Use in Create Recipe"
+            title="Copy Recipe from URL"
+            description="Paste a recipe URL to generate a draft that will open directly in the Create Recipe form."
+            headerActions={
+              <button
+                className="rounded-lg border border-border px-3 py-1.5 text-sm font-medium"
+                type="button"
+                onClick={() => setStartMode("custom")}
+              >
+                Custom Recipe
+              </button>
+            }
+          />
+        ) : null}
+
+        {startMode === "custom" ? (
         <form className="flex flex-col gap-10 rounded-3xl border border-border bg-surface p-8 shadow-sm">
           <section className="flex flex-col gap-5">
             <h2 className="text-xl font-semibold">Recipe details</h2>
@@ -1066,6 +1164,7 @@ export default function AdminCreateRecipePage() {
             </div>
           </section>
         </form>
+        ) : null}
       </main>
     </div>
   );
