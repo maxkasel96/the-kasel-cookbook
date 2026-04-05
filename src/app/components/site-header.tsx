@@ -43,45 +43,35 @@ function isActivePath(pathname: string, item: NavItem) {
 function getDesktopLinkClass(item: NavItem, isActive: boolean) {
   if (item.isProminent) {
     return [
-      "rounded-full border px-4 py-2 text-sm font-semibold transition",
-      isActive
-        ? "border-border-strong bg-accent text-surface shadow-[3px_3px_0_var(--color-border-strong)]"
-        : "border-border bg-accent text-surface hover:-translate-y-0.5 hover:shadow-[3px_3px_0_var(--color-border)]",
+      "site-nav-link site-nav-link--prominent",
+      isActive ? "site-nav-link--active" : "",
     ].join(" ");
   }
 
   return [
-    "rounded-full border px-3 py-1.5 text-sm font-medium transition",
-    isActive
-      ? "border-border bg-surface-2 text-foreground"
-      : "border-transparent text-foreground hover:border-border hover:bg-surface-2",
+    "site-nav-link",
+    isActive ? "site-nav-link--active" : "text-foreground",
   ].join(" ");
 }
 
 function getUtilityLinkClass(isActive: boolean) {
   return [
-    "rounded-full border px-3 py-1.5 text-sm transition",
-    isActive
-      ? "border-border bg-surface text-foreground"
-      : "border-transparent text-text-muted hover:border-border hover:bg-surface hover:text-foreground",
+    "site-nav-link site-nav-link--utility",
+    isActive ? "site-nav-link--active" : "",
   ].join(" ");
 }
 
 function getMobileLinkClass(item: NavItem, isActive: boolean) {
   if (item.isProminent) {
     return [
-      "rounded-2xl border px-4 py-3 text-sm font-semibold transition",
-      isActive
-        ? "border-border-strong bg-accent text-surface shadow-[3px_3px_0_var(--color-border-strong)]"
-        : "border-border bg-accent text-surface hover:bg-accent/90",
+      "site-nav-link site-nav-link--prominent w-full justify-start rounded-[1.25rem] px-4 py-3",
+      isActive ? "site-nav-link--active" : "",
     ].join(" ");
   }
 
   return [
-    "rounded-xl border px-3 py-2 text-sm font-medium transition",
-    isActive
-      ? "border-border bg-surface-2 text-foreground"
-      : "border-transparent text-foreground hover:border-border hover:bg-surface-2",
+    "site-nav-link w-full justify-start rounded-[1.1rem] px-4 py-3",
+    isActive ? "site-nav-link--active" : "text-foreground",
   ].join(" ");
 }
 
@@ -98,17 +88,18 @@ export default function SiteHeader() {
   };
 
   return (
-    <header className="relative z-[1000] border-b border-border bg-surface/90 px-6 py-4 backdrop-blur">
-      <div className="mx-auto flex w-full max-w-5xl items-center justify-between gap-4">
-        <Link
-          className="text-lg font-semibold transition hover:text-link"
-          href="/recipes"
-        >
-          The Kasel Cookbook
+    <header className="site-header px-6 py-5">
+      <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-5">
+        <Link className="site-brand" href="/recipes" onClick={closeMenu}>
+          <span className="site-brand__eyebrow">Family Recipe Archive</span>
+          <span className="site-brand__name">The Kasel Cookbook</span>
         </Link>
-        <div className="hidden items-center gap-4 md:flex">
-          <nav aria-label="Primary" className="border-r border-border/70 pr-4">
-            <ul className="flex flex-wrap items-center gap-3">
+        <div className="hidden items-center gap-6 md:flex">
+          <nav
+            aria-label="Primary"
+            className="border-r border-border/60 pr-5"
+          >
+            <ul className="flex flex-wrap items-center gap-2">
               {primaryNavigation.map((item) => {
                 const isActive = isActivePath(pathname, item);
 
@@ -127,7 +118,7 @@ export default function SiteHeader() {
             </ul>
           </nav>
           <nav aria-label="Utility">
-            <ul className="flex flex-wrap items-center gap-2">
+            <ul className="flex flex-wrap items-center gap-1.5">
               {utilityNavigation.map((item) => {
                 const isActive = isActivePath(pathname, item);
 
@@ -148,7 +139,7 @@ export default function SiteHeader() {
         </div>
         <button
           type="button"
-          className="flex h-10 w-10 items-center justify-center rounded-full border border-border text-foreground transition hover:bg-surface-2 md:hidden"
+          className="site-menu-button flex items-center justify-center md:hidden"
           aria-label="Toggle navigation menu"
           aria-expanded={isOpen}
           aria-controls="mobile-navigation"
@@ -163,7 +154,7 @@ export default function SiteHeader() {
         </button>
       </div>
       <div
-        className={`fixed inset-0 z-[1000] bg-black/40 transition-opacity md:hidden ${
+        className={`site-mobile-overlay fixed inset-0 z-[1000] transition-opacity md:hidden ${
           isOpen ? "opacity-100" : "pointer-events-none opacity-0"
         }`}
         aria-hidden={!isOpen}
@@ -171,16 +162,19 @@ export default function SiteHeader() {
       />
       <aside
         id="mobile-navigation"
-        className={`fixed right-0 top-0 z-[1100] flex h-full w-[85vw] max-w-xs flex-col gap-6 overflow-y-auto border-l border-border bg-background px-6 py-6 shadow-xl transition-transform md:hidden ${
+        className={`site-mobile-panel fixed right-0 top-0 z-[1100] flex h-full w-[85vw] max-w-xs flex-col gap-6 overflow-y-auto px-6 py-6 transition-transform md:hidden ${
           isOpen ? "translate-x-0" : "translate-x-full"
         }`}
         aria-hidden={!isOpen}
       >
         <div className="flex items-center justify-between">
-          <div className="text-base font-semibold">Menu</div>
+          <div className="space-y-1">
+            <div className="site-section-label">Navigate</div>
+            <div className="text-base font-semibold text-text-strong">Menu</div>
+          </div>
           <button
             type="button"
-            className="rounded-full border border-border px-3 py-1 text-sm font-medium transition hover:bg-surface-2"
+            className="site-mobile-close px-3 py-1 text-sm font-medium"
             onClick={closeMenu}
           >
             Close
@@ -188,9 +182,7 @@ export default function SiteHeader() {
         </div>
         <div className="flex flex-col gap-6">
           <nav aria-label="Primary mobile" className="flex flex-col gap-3">
-            <div className="text-xs font-semibold uppercase tracking-[0.25em] text-text-muted">
-              Explore
-            </div>
+            <div className="site-section-label">Explore</div>
             {primaryNavigation.map((item) => {
               const isActive = isActivePath(pathname, item);
 
@@ -209,11 +201,9 @@ export default function SiteHeader() {
           </nav>
           <nav
             aria-label="Utility mobile"
-            className="border-t border-border/70 pt-5"
+            className="border-t border-border/50 pt-5"
           >
-            <div className="mb-3 text-xs font-semibold uppercase tracking-[0.25em] text-text-muted">
-              Account
-            </div>
+            <div className="site-section-label mb-3">Account</div>
             <div className="flex flex-col gap-2">
               {utilityNavigation.map((item) => {
                 const isActive = isActivePath(pathname, item);
