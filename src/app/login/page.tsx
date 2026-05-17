@@ -29,7 +29,7 @@ export default function LoginPage() {
         ) : null}
         <button
           onClick={signInWithGoogle}
-          className="w-full rounded-md bg-black text-white py-2"
+          className="w-full rounded-md bg-primary py-2 text-primary-foreground transition hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-60"
           disabled={isLocalAuthBypassEnabled}
         >
           {isLocalAuthBypassEnabled

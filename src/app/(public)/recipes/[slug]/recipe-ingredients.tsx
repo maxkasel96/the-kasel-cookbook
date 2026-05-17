@@ -78,7 +78,7 @@ export function RecipeIngredients({
   }
 
   return (
-    <div className="rounded-2xl border border-muted/60 bg-muted/10 p-6">
+    <div className="recipe-detail-panel rounded-2xl p-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h2 className="text-xl font-semibold text-foreground">
           Ingredients
@@ -90,7 +90,7 @@ export function RecipeIngredients({
             </span>
             <input
               aria-label="Adjust servings"
-              className="w-20 rounded-full border border-muted/60 bg-background px-3 py-1 text-center text-sm font-semibold text-foreground shadow-sm"
+              className="recipe-detail-input w-20 rounded-full px-3 py-1 text-center text-sm font-semibold shadow-sm"
               inputMode="decimal"
               min={1}
               step={0.25}
@@ -110,7 +110,7 @@ export function RecipeIngredients({
         </p>
       ) : null}
       {feedback ? (
-        <p className="mt-3 rounded-xl border border-muted/60 bg-background px-3 py-2 text-xs text-muted-foreground">
+        <p className="recipe-detail-feedback mt-3 rounded-xl px-3 py-2 text-xs">
           {feedback}
         </p>
       ) : null}
@@ -126,7 +126,7 @@ export function RecipeIngredients({
             return (
               <li
                 key={ingredient.id}
-                className="flex flex-col gap-2 rounded-xl border border-transparent px-2 py-2 transition hover:border-muted/40 hover:bg-background/60 sm:flex-row sm:items-center sm:justify-between"
+                className="recipe-ingredient-item flex flex-col gap-2 rounded-xl border px-2 py-2 transition sm:flex-row sm:items-center sm:justify-between"
               >
                 <div className="flex flex-col">
                   <span className="font-medium">{displayLabel}</span>
@@ -142,7 +142,7 @@ export function RecipeIngredients({
                   type="button"
                   disabled={isPending}
                   onClick={() => handleAdd(ingredient, displayLabel)}
-                  className="flex h-9 w-9 items-center justify-center rounded-full border border-muted/60 text-base font-semibold text-muted-foreground transition hover:border-muted hover:text-foreground disabled:cursor-not-allowed disabled:opacity-60"
+                  className="recipe-add-button flex h-9 w-9 items-center justify-center rounded-full text-base font-semibold transition disabled:cursor-not-allowed disabled:opacity-60"
                   aria-label="Add to list"
                   title="Add to list"
                 >

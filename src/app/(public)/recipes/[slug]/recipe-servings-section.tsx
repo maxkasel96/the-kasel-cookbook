@@ -105,7 +105,7 @@ export default function RecipeServingsSection({
       />
 
       <div className="space-y-6">
-        <div className="rounded-2xl border border-muted/60 bg-background p-6 shadow-sm">
+        <div className="recipe-detail-panel rounded-2xl p-6">
           <h2 className="text-xl font-semibold text-foreground">
             Instructions
           </h2>
@@ -126,7 +126,7 @@ export default function RecipeServingsSection({
                   <li key={step.id ?? index} className="leading-relaxed">
                     <span>{step.content ?? ''}</span>
                     {assignedIngredients.length ? (
-                      <ul className="mt-1 text-xs italic text-muted-foreground list-disc pl-5">
+                      <ul className="mt-1 list-disc pl-5 text-xs italic text-foreground/80">
                         {assignedIngredients.map((a, i) => (
                           <li key={i}>{a}</li>
                         ))}

@@ -109,7 +109,7 @@ export default function MealAssignment({
   return (
     <form
       onSubmit={handleSubmit}
-      className="rounded-2xl border border-muted/60 bg-background p-6 shadow-sm"
+      className="recipe-detail-panel rounded-2xl p-6"
     >
       <div className="space-y-2">
         <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
@@ -134,7 +134,7 @@ export default function MealAssignment({
                 setNewMealTitle('')
               }
             }}
-            className="w-full rounded-md border border-muted/70 bg-background px-3 py-2 text-sm text-foreground shadow-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+            className="recipe-detail-input w-full rounded-md px-3 py-2 text-sm shadow-sm"
           >
             <option value="">Choose a saved meal</option>
             {meals.map((meal) => (
@@ -157,7 +157,7 @@ export default function MealAssignment({
               }
             }}
             placeholder="e.g. Sunday dinner"
-            className="w-full rounded-md border border-muted/70 bg-background px-3 py-2 text-sm text-foreground shadow-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+            className="recipe-detail-input w-full rounded-md px-3 py-2 text-sm shadow-sm"
           />
         </label>
       </div>
@@ -166,7 +166,7 @@ export default function MealAssignment({
         <button
           type="submit"
           disabled={!canSubmit || isSubmitting}
-          className="rounded-full bg-accent px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-danger disabled:cursor-not-allowed disabled:opacity-60"
+          className="recipe-detail-primary-action rounded-full px-4 py-2 text-sm font-semibold shadow-sm transition disabled:cursor-not-allowed disabled:opacity-60"
         >
           {isSubmitting ? 'Saving...' : 'Add to meal'}
         </button>
@@ -174,8 +174,8 @@ export default function MealAssignment({
           <p
             className={`text-sm ${
               status.type === 'success'
-                ? 'text-emerald-600'
-                : 'text-rose-600'
+                ? 'text-success'
+                : 'text-danger'
             }`}
             role="status"
           >
