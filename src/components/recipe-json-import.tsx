@@ -147,6 +147,15 @@ export default function RecipeJsonImport({
     }
   };
 
+  const handleClear = () => {
+    if (window.confirm("Are you sure you want to clear the Recipe JSON field? This action cannot be undone.")) {
+      setRawJson("");
+      setDraft(null);
+      setError(null);
+      setStatus(null);
+    }
+  };
+
   const handleUseDraft = async () => {
     if (!draft) return;
     setError(null);
@@ -223,6 +232,14 @@ export default function RecipeJsonImport({
               className="rounded-2xl border border-border bg-background px-4 py-2 text-sm font-medium transition hover:border-primary hover:text-primary disabled:cursor-not-allowed disabled:opacity-50"
             >
               {messages?.parseButton ?? (isParsing ? "Parsing..." : "Parse JSON")}
+            </button>
+            <button
+              type="button"
+              onClick={handleClear}
+              disabled={!rawJson.trim()}
+              className="rounded-2xl border border-border bg-background px-4 py-2 text-sm font-medium transition hover:border-primary hover:text-primary disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              Clear
             </button>
             {headerActions}
           </div>
