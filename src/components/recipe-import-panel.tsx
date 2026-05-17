@@ -194,18 +194,18 @@ export default function RecipeImportPanel({
                   <li key={`${step}-${index}`}>
                     <span>{step}</span>
                     {draft.stepIngredientIndexes?.[index]?.length ? (
-                      <span className="block text-muted-foreground">
-                        Uses:{" "}
-                        {draft.stepIngredientIndexes[index]
-                          .map((ingredientIndex) => {
-                            const ingredient =
-                              draft.ingredients[ingredientIndex - 1];
-                            return ingredient?.text?.trim()
+                      <div className="mt-1 text-sm text-muted-foreground">
+                        <span className="block font-medium">Uses</span>
+                        <ul className="list-disc pl-5 mt-1">
+                          {draft.stepIngredientIndexes[index].map((ingredientIndex) => {
+                            const ingredient = draft.ingredients[ingredientIndex - 1];
+                            const name = ingredient?.text?.trim()
                               ? ingredient.text.trim()
                               : `Ingredient ${ingredientIndex}`;
-                          })
-                          .join(", ")}
-                      </span>
+                            return <li key={ingredientIndex}>{name}</li>;
+                          })}
+                        </ul>
+                      </div>
                     ) : null}
                   </li>
                 ))}
