@@ -1,5 +1,3 @@
-import type { Config } from "tailwindcss"
-
 export default {
   content: [
     "./app/**/*.{js,ts,jsx,tsx}",
@@ -45,4 +43,4 @@ export default {
     },
   },
   plugins: [],
-} satisfies Config
+}
