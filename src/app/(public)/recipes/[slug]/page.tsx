@@ -6,10 +6,23 @@ import { getRecipeBySlug } from '@/lib/db/recipes'
 import FavoriteRecipeButton from './FavoriteRecipeButton'
 import RecipeViewTracker from './RecipeViewTracker'
 import RecipeServingsSection from './recipe-servings-section'
+import ScreenWakeLockButton from './ScreenWakeLockButton'
 
 type RecipeDetailPageProps = {
   params: Promise<{ slug: string }>
 }
+
+type LinkedName = {
+  name?: string | null
+}
+
+type RecipeMetadataLink = {
+  tags?: LinkedName | LinkedName[] | null
+  categories?: LinkedName | LinkedName[] | null
+}
+
+const isPresentString = (value: string | null | undefined): value is string =>
+  Boolean(value)
 
 const formatMinutes = (minutes: number) => {
   if (minutes <= 60) {
@@ -29,6 +42,22 @@ const formatMinutes = (minutes: number) => {
   return `${hours} ${hourLabel} ${remainingMinutes} ${minuteLabel}`
 }
 
+const getLinkedNames = (
+  links: RecipeMetadataLink[] | null | undefined,
+  key: 'tags' | 'categories'
+) =>
+  links
+    ?.flatMap((link) => {
+      const value = link?.[key]
+
+      if (Array.isArray(value)) {
+        return value.map((item) => item?.name).filter(isPresentString)
+      }
+
+      return value?.name ? [value.name] : []
+    })
+    .filter(isPresentString) ?? []
+
 export default async function RecipeDetailPage({
   params,
 }: RecipeDetailPageProps) {
@@ -40,29 +69,11 @@ export default async function RecipeDetailPage({
     notFound()
   }
 
-  const tagList =
-    recipe.recipe_tags
-      ?.flatMap((tagLink: any) => {
-        if (Array.isArray(tagLink?.tags)) {
-          return tagLink.tags.map((tag: any) => tag?.name).filter(Boolean)
-        }
-        return tagLink?.tags?.name ? [tagLink.tags.name] : []
-      })
-      .filter(Boolean) ?? []
-
-  const categoryList =
-    recipe.recipe_categories
-      ?.flatMap((categoryLink: any) => {
-        if (Array.isArray(categoryLink?.categories)) {
-          return categoryLink.categories
-            .map((category: any) => category?.name)
-            .filter(Boolean)
-        }
-        return categoryLink?.categories?.name
-          ? [categoryLink.categories.name]
-          : []
-      })
-      .filter(Boolean) ?? []
+  const tagList = getLinkedNames(recipe.recipe_tags, 'tags')
+  const categoryList = getLinkedNames(
+    recipe.recipe_categories,
+    'categories'
+  )
 
   const detailItems = [
     recipe.prep_minutes
@@ -96,17 +107,25 @@ export default async function RecipeDetailPage({
                 {recipe.description}
               </p>
             ) : null}
+            <Link
+              href={`/recipes/${recipe.slug}/edit`}
+              className="recipe-detail-edit-link inline-flex rounded-full px-4 py-2 text-sm font-semibold transition"
+            >
+              Edit recipe
+            </Link>
           </div>
-          <FavoriteRecipeButton
-            recipe={{
-              id: recipe.id,
-              slug: recipe.slug,
-              title: recipe.title,
-              description: recipe.description,
-              recipe_tags: recipe.recipe_tags,
-              recipe_categories: recipe.recipe_categories,
-            }}
-          />
+          <div className="recipe-detail-header-actions">
+            <FavoriteRecipeButton
+              recipe={{
+                id: recipe.id,
+                slug: recipe.slug,
+                title: recipe.title,
+                description: recipe.description,
+                recipe_tags: recipe.recipe_tags,
+                recipe_categories: recipe.recipe_categories,
+              }}
+            />
+          </div>
         </div>
         {detailItems.length ? (
           <dl className="recipe-detail-stats mt-4 grid gap-3 rounded-2xl p-4 text-sm sm:grid-cols-3">
@@ -133,7 +152,7 @@ export default async function RecipeDetailPage({
               {categoryList.map((category: string) => (
                 <span
                   key={category}
-              className="recipe-detail-chip rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em]"
+                  className="recipe-detail-chip rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em]"
                 >
                   {category}
                 </span>
@@ -150,7 +169,7 @@ export default async function RecipeDetailPage({
               {tagList.map((tag: string) => (
                 <span
                   key={tag}
-              className="recipe-detail-chip rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em]"
+                  className="recipe-detail-chip rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em]"
                 >
                   {tag}
                 </span>
@@ -171,13 +190,8 @@ export default async function RecipeDetailPage({
         recipeTitle={recipe.title}
       />
 
-      <div className="fixed bottom-6 right-6 z-10">
-        <Link
-          href={`/recipes/${recipe.slug}/edit`}
-          className="recipe-detail-edit-link rounded-full px-6 py-3 text-sm font-semibold shadow-lg transition"
-        >
-          Edit recipe
-        </Link>
+      <div className="recipe-detail-floating-actions fixed bottom-6 right-6 z-10">
+        <ScreenWakeLockButton />
       </div>
     </main>
   )
