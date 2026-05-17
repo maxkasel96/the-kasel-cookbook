@@ -791,6 +791,12 @@ p {
   color: var(--favorite);
 }
 
+.recipe-detail-header-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.7rem;
+}
+
 .recipe-detail-input {
   border: 1px solid var(--border);
   background: var(--surface);
@@ -839,7 +845,18 @@ p {
   background: var(--primary-hover);
   color: var(--primary-foreground);
   text-shadow: 0 1px 1px rgba(33, 31, 28, 0.22);
+}
+
+.recipe-detail-primary-action {
   box-shadow: 0 14px 26px rgba(61, 97, 69, 0.28);
+}
+
+.recipe-detail-edit-link {
+  align-items: center;
+  align-self: flex-start;
+  justify-content: center;
+  box-shadow: 0 8px 18px rgba(61, 97, 69, 0.18);
+  white-space: nowrap;
 }
 
 .recipe-detail-primary-action:hover,
@@ -848,6 +865,60 @@ p {
   color: var(--primary-foreground);
   transform: translateY(-1px);
   box-shadow: var(--shadow-medium);
+}
+
+.recipe-detail-floating-actions {
+  display: inline-flex;
+  align-items: center;
+}
+
+.recipe-wake-lock {
+  display: inline-flex;
+}
+
+.recipe-wake-lock__button {
+  display: inline-flex;
+  height: 3rem;
+  width: 3rem;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: rgba(255, 248, 237, 0.96);
+  color: var(--primary);
+  box-shadow:
+    0 14px 26px rgba(80, 79, 76, 0.16),
+    var(--shadow-inset);
+}
+
+.recipe-wake-lock__button:hover:not(:disabled) {
+  border-color: rgba(232, 135, 111, 0.46);
+  background: rgba(232, 135, 111, 0.18);
+  color: var(--text-strong);
+  transform: translateY(-1px);
+}
+
+.recipe-wake-lock__button--active {
+  border-color: rgba(61, 97, 69, 0.38);
+  background: var(--primary);
+  color: var(--primary-foreground);
+  box-shadow: 0 16px 30px rgba(61, 97, 69, 0.28);
+}
+
+.recipe-wake-lock__button:disabled {
+  cursor: not-allowed;
+  opacity: 0.58;
+}
+
+.recipe-wake-lock__icon {
+  flex: 0 0 auto;
+  height: 1.25rem;
+  width: 1.25rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.9;
 }
 
 @media (max-width: 767px) {
@@ -870,6 +941,20 @@ p {
 
   .recipe-card {
     padding: 1.35rem;
+  }
+
+  .recipe-detail-header-actions {
+    align-self: flex-start;
+  }
+
+  .recipe-detail-floating-actions {
+    right: 1rem;
+    bottom: 1rem;
+  }
+
+  .recipe-wake-lock__button {
+    height: 2.75rem;
+    width: 2.75rem;
   }
 }
 
