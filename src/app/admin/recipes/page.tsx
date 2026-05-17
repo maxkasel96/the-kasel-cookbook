@@ -12,7 +12,7 @@ export default function AdminRecipesPage() {
             <h1 className="text-3xl font-semibold">Recipes</h1>
           </div>
           <Link
-            className="rounded-full bg-accent px-5 py-2 text-sm font-semibold text-white transition hover:bg-danger"
+            className="rounded-full bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground transition hover:bg-primary-hover"
             href="/admin/recipes/create"
           >
             Create recipe

@@ -82,10 +82,10 @@ export default async function RecipeDetailPage({
         category={categoryList[0]}
         tags={tagList}
       />
-      <header className="space-y-4">
-        <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+      <header className="recipe-detail-hero space-y-4">
+        <div className="recipe-detail-heading flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
           <div className="space-y-3">
-            <p className="text-sm font-semibold uppercase tracking-[0.3em] text-muted-foreground">
+            <p className="recipe-detail-kicker text-sm font-semibold uppercase tracking-[0.3em]">
               Saved recipe
             </p>
             <h1 className="text-4xl font-semibold text-foreground">
@@ -109,7 +109,7 @@ export default async function RecipeDetailPage({
           />
         </div>
         {detailItems.length ? (
-          <dl className="mt-4 grid gap-3 rounded-2xl border border-muted/60 bg-muted/10 p-4 text-sm text-foreground sm:grid-cols-3">
+          <dl className="recipe-detail-stats mt-4 grid gap-3 rounded-2xl p-4 text-sm sm:grid-cols-3">
             {detailItems.map((item) => (
               <div key={item.label} className="space-y-1">
                 <dt className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
@@ -133,7 +133,7 @@ export default async function RecipeDetailPage({
               {categoryList.map((category: string) => (
                 <span
                   key={category}
-                  className="rounded-full border border-muted/60 bg-muted/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground"
+              className="recipe-detail-chip rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em]"
                 >
                   {category}
                 </span>
@@ -150,7 +150,7 @@ export default async function RecipeDetailPage({
               {tagList.map((tag: string) => (
                 <span
                   key={tag}
-                  className="rounded-full border border-muted/60 bg-muted/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground"
+              className="recipe-detail-chip rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em]"
                 >
                   {tag}
                 </span>
@@ -174,7 +174,7 @@ export default async function RecipeDetailPage({
       <div className="fixed bottom-6 right-6 z-10">
         <Link
           href={`/recipes/${recipe.slug}/edit`}
-          className="rounded-full bg-accent px-6 py-3 text-sm font-semibold text-white shadow-lg transition hover:bg-danger"
+          className="recipe-detail-edit-link rounded-full px-6 py-3 text-sm font-semibold shadow-lg transition"
         >
           Edit recipe
         </Link>

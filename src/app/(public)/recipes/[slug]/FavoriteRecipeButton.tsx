@@ -16,10 +16,8 @@ export default function FavoriteRecipeButton({
     <button
       type="button"
       onClick={() => toggleFavorite(recipe)}
-      className={`rounded-full border px-4 py-2 text-sm font-medium transition ${
-        active
-          ? 'border-primary/40 bg-primary/10 text-primary'
-          : 'border-muted/60 text-muted-foreground hover:border-muted hover:bg-muted/30'
+      className={`recipe-detail-favorite rounded-full px-4 py-2 text-sm font-medium transition ${
+        active ? 'recipe-detail-favorite--active' : ''
       }`}
       aria-label={
         active
@@ -27,10 +25,9 @@ export default function FavoriteRecipeButton({
           : `Add ${recipe.title} to favorites`
       }
     >
-      <span className="mr-2" aria-hidden="true">
+      <span aria-hidden="true">
         {active ? '♥' : '♡'}
       </span>
-      {active ? 'Favorited' : 'Add to favorites'}
     </button>
   )
 }

@@ -114,7 +114,7 @@ export default function AdminAccessPage() {
           </select>
           <button
             type="submit"
-            className="rounded-md bg-black px-4 py-2 text-white"
+            className="rounded-md bg-primary px-4 py-2 text-primary-foreground transition hover:bg-primary-hover"
           >
             Save role
           </button>
