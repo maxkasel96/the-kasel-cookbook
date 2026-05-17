@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 
 import RecipeEditorForm from "@/components/recipe-editor-form";
 import RecipeImportPanel from "@/components/recipe-import-panel";
+import RecipeJsonImport from "@/components/recipe-json-import";
 import { trackAdminRecipeCreated } from "@/lib/analytics/track";
 import {
   RECIPE_IMPORT_DRAFT_STORAGE_KEY,
@@ -36,9 +37,9 @@ type CategoryOption = {
   name: string;
 };
 
-type RecipeStartMode = "copy" | "custom" | null;
+type RecipeStartMode = "copy" | "custom" | "json" | null;
 
-const createId = () =>
+const createId = () => 
   typeof crypto !== "undefined" && "randomUUID" in crypto
     ? crypto.randomUUID()
     : `temp-${Date.now()}-${Math.random()}`;
@@ -642,6 +643,24 @@ export default function AdminCreateRecipePage() {
               />
             ) : null}
 
+              {startMode === "json" ? (
+                <RecipeJsonImport
+                  onUseDraft={(draft) => applyImportedDraft(draft)}
+                  useDraftButtonLabel="Use in Create Recipe"
+                  title="Paste Recipe JSON"
+                  description="Paste structured recipe JSON (from ChatGPT) to generate a draft that opens in the Create Recipe form."
+                  headerActions={
+                    <button
+                      className="recipe-editor-inline-action"
+                      type="button"
+                      onClick={() => setStartMode("custom")}
+                    >
+                      Custom recipe
+                    </button>
+                  }
+                />
+              ) : null}
+
             {startMode === "custom" ? (
               <RecipeEditorForm
                 availableCategories={availableCategories}
@@ -726,3 +745,4 @@ export default function AdminCreateRecipePage() {
     </div>
   );
 }
+

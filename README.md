@@ -69,6 +69,35 @@ Notes:
 - Saving the imported draft as a real recipe still depends on the existing Supabase admin/server variables already used by `/api/admin/recipes`.
 - `NEXT_PUBLIC_LOCAL_AUTH_BYPASS=true` can still be useful locally if you want to test the admin create flow without signing in, but do not set that bypass in production.
 
+## Recipe JSON import
+
+The admin create page now supports a structured JSON import flow at `/admin/recipes/create`.
+
+1. Choose “Paste JSON” as the entry method.
+2. Paste structured recipe JSON from ChatGPT or another source.
+3. Click “Parse JSON” to validate and preview the imported draft.
+4. Click “Use in Create Recipe” to populate the editor form and save the recipe.
+
+A help panel is available in the JSON import card with:
+
+- a short schema overview,
+- a complete example JSON payload,
+- a copy button to paste the example directly into the editor.
+
+The expected JSON shape includes:
+
+- `sourceUrl` (string)
+- `title` (string)
+- `description` (string)
+- `servings` (string)
+- `prepMinutes` (string)
+- `cookMinutes` (string)
+- `ingredients` (array of objects with `text`, `quantity`, `unit`, `note`, `optional`)
+- `steps` (array of strings)
+- `stepIngredientIndexes` (array of arrays of 1-based ingredient indexes)
+
+The parser validates the JSON and displays human-readable errors when the payload does not match the expected shape.
+
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:
