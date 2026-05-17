@@ -313,20 +313,24 @@ export default function RecipeEditorForm({
 
   const saveFeedbackMessage = formError ?? formStatus;
   const saveFeedbackVariant = formError ? "error" : formStatus ? "success" : null;
-  const saveFeedbackClassName = saveFeedbackVariant
-    ? `recipe-editor-alert recipe-editor-alert--${saveFeedbackVariant} recipe-editor-save-feedback`
+  const saveNoticeClassName = saveFeedbackVariant
+    ? `recipe-editor-save-notice recipe-editor-save-notice--${saveFeedbackVariant}`
     : undefined;
+  const saveNoticeLabel =
+    saveFeedbackVariant === "error" ? "Recipe save failed" : "Recipe saved";
 
   return (
     <div className="recipe-editor-shell">
-      {formError ? (
-        <p className="recipe-editor-alert recipe-editor-alert--error">{formError}</p>
-      ) : null}
-
-      {formStatus ? (
-        <p className="recipe-editor-alert recipe-editor-alert--success">
-          {formStatus}
-        </p>
+      {saveFeedbackMessage ? (
+        <div className={saveNoticeClassName} role="alert" aria-live="assertive">
+          <span className="recipe-editor-save-notice__icon" aria-hidden="true">
+            {saveFeedbackVariant === "error" ? "!" : "✓"}
+          </span>
+          <span className="recipe-editor-save-notice__body">
+            <strong>{saveNoticeLabel}</strong>
+            <span>{saveFeedbackMessage}</span>
+          </span>
+        </div>
       ) : null}
 
       {tertiaryAction ? (
@@ -787,9 +791,6 @@ export default function RecipeEditorForm({
         <aside className="recipe-editor-sidebar">
           <div className="recipe-editor-sidebar-card">
             <p className="recipe-editor-section__eyebrow">Save</p>
-            {saveFeedbackMessage ? (
-              <p className={saveFeedbackClassName}>{saveFeedbackMessage}</p>
-            ) : null}
             <div className="recipe-editor-sidebar-actions">
               <button
                 className="recipe-editor-action recipe-editor-action--primary"
@@ -826,9 +827,6 @@ export default function RecipeEditorForm({
       </div>
 
       <div className="recipe-editor-mobile-bar">
-        {saveFeedbackMessage ? (
-          <p className={saveFeedbackClassName}>{saveFeedbackMessage}</p>
-        ) : null}
         <button
           className="recipe-editor-action recipe-editor-action--primary"
           type="button"
