@@ -126,9 +126,11 @@ export default function RecipeServingsSection({
                   <li key={step.id ?? index} className="leading-relaxed">
                     <span>{step.content ?? ''}</span>
                     {assignedIngredients.length ? (
-                      <p className="mt-1 text-xs italic text-muted-foreground">
-                        {assignedIngredients.join(', ')}
-                      </p>
+                      <ul className="mt-1 text-xs italic text-muted-foreground list-disc pl-5">
+                        {assignedIngredients.map((a, i) => (
+                          <li key={i}>{a}</li>
+                        ))}
+                      </ul>
                     ) : null}
                   </li>
                 )
