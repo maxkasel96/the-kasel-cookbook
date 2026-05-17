@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">The Kasel Cookbook</title>
+  <desc id="desc">A cookbook app icon with a warm recipe card and herb detail.</desc>
+  <rect width="512" height="512" rx="112" fill="#555842"/>
+  <path fill="#f6f0e6" d="M126 112h260c24 0 44 20 44 44v230c0 24-20 44-44 44H126c-24 0-44-20-44-44V156c0-24 20-44 44-44Z"/>
+  <path fill="#dcc9b0" d="M126 112h260c24 0 44 20 44 44v42H82v-42c0-24 20-44 44-44Z"/>
+  <path fill="#81634a" d="M146 170c0-12 10-22 22-22h176c12 0 22 10 22 22s-10 22-22 22H168c-12 0-22-10-22-22Z"/>
+  <path fill="#555842" d="M145 251c0-8 7-15 15-15h192c8 0 15 7 15 15s-7 15-15 15H160c-8 0-15-7-15-15Zm0 58c0-8 7-15 15-15h154c8 0 15 7 15 15s-7 15-15 15H160c-8 0-15-7-15-15Zm0 58c0-8 7-15 15-15h108c8 0 15 7 15 15s-7 15-15 15H160c-8 0-15-7-15-15Z"/>
+  <path fill="#76804f" d="M354 306c36-33 66-45 90-35-2 30-25 61-68 93 2-29-4-48-22-58Z"/>
+  <path fill="#a7805a" d="M336 357c-16-18-17-40-3-66 31 17 47 42 47 75-19 4-33 1-44-9Z"/>
+</svg>

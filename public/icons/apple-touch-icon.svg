@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 180" role="img" aria-labelledby="title desc">
+  <title id="title">The Kasel Cookbook</title>
+  <desc id="desc">Apple touch icon for The Kasel Cookbook.</desc>
+  <rect width="180" height="180" rx="40" fill="#555842"/>
+  <path fill="#f6f0e6" d="M45 36h90c9 0 16 7 16 16v83c0 9-7 16-16 16H45c-9 0-16-7-16-16V52c0-9 7-16 16-16Z"/>
+  <path fill="#dcc9b0" d="M45 36h90c9 0 16 7 16 16v15H29V52c0-9 7-16 16-16Z"/>
+  <path fill="#81634a" d="M52 56c0-4 4-8 8-8h61c5 0 8 4 8 8s-3 8-8 8H60c-4 0-8-4-8-8Z"/>
+  <path fill="#555842" d="M52 87c0-3 2-5 5-5h68c3 0 5 2 5 5s-2 5-5 5H57c-3 0-5-2-5-5Zm0 20c0-3 2-5 5-5h54c3 0 5 2 5 5s-2 5-5 5H57c-3 0-5-2-5-5Zm0 21c0-3 2-5 5-5h38c3 0 5 2 5 5s-2 5-5 5H57c-3 0-5-2-5-5Z"/>
+  <path fill="#76804f" d="M124 106c13-12 23-16 32-13-1 11-9 22-24 33 0-10-2-17-8-20Z"/>
+  <path fill="#a7805a" d="M118 124c-6-6-6-14-1-23 11 6 16 15 16 26-6 1-11 0-15-3Z"/>
+</svg>
