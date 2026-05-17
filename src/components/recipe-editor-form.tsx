@@ -311,6 +311,12 @@ export default function RecipeEditorForm({
     { label: "Steps", value: `${stepCount} step${stepCount === 1 ? "" : "s"}` },
   ];
 
+  const saveFeedbackMessage = formError ?? formStatus;
+  const saveFeedbackVariant = formError ? "error" : formStatus ? "success" : null;
+  const saveFeedbackClassName = saveFeedbackVariant
+    ? `recipe-editor-alert recipe-editor-alert--${saveFeedbackVariant} recipe-editor-save-feedback`
+    : undefined;
+
   return (
     <div className="recipe-editor-shell">
       {formError ? (
@@ -781,6 +787,9 @@ export default function RecipeEditorForm({
         <aside className="recipe-editor-sidebar">
           <div className="recipe-editor-sidebar-card">
             <p className="recipe-editor-section__eyebrow">Save</p>
+            {saveFeedbackMessage ? (
+              <p className={saveFeedbackClassName}>{saveFeedbackMessage}</p>
+            ) : null}
             <div className="recipe-editor-sidebar-actions">
               <button
                 className="recipe-editor-action recipe-editor-action--primary"
@@ -817,6 +826,9 @@ export default function RecipeEditorForm({
       </div>
 
       <div className="recipe-editor-mobile-bar">
+        {saveFeedbackMessage ? (
+          <p className={saveFeedbackClassName}>{saveFeedbackMessage}</p>
+        ) : null}
         <button
           className="recipe-editor-action recipe-editor-action--primary"
           type="button"

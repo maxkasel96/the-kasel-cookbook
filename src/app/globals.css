@@ -1225,6 +1225,14 @@ p {
   padding: 0.8rem 0.95rem;
 }
 
+.recipe-editor-save-feedback {
+  margin-bottom: 0.75rem;
+}
+
+.recipe-editor-mobile-bar .recipe-editor-save-feedback {
+  margin-bottom: 0.65rem;
+}
+
 .recipe-editor-alert--error {
   border: 1px solid rgba(155, 94, 82, 0.26);
   background: rgba(155, 94, 82, 0.09);
