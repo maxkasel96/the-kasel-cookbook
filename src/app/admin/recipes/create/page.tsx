@@ -614,6 +614,28 @@ export default function AdminCreateRecipePage() {
               </p>
             </div>
           </button>
+
+          <button
+            className={`recipe-start-option ${
+              startMode === "json" ? "recipe-start-option--active" : ""
+            }`}
+            type="button"
+            onClick={() => {
+              setFormError(null);
+              setFormStatus(null);
+              setStartMode("json");
+            }}
+          >
+            <span className="recipe-start-option__indicator" aria-hidden="true" />
+            <div className="recipe-start-option__body">
+              <p className="recipe-start-option__eyebrow">Entry method</p>
+              <h2 className="recipe-start-option__title">Paste JSON</h2>
+              <p className="recipe-start-option__description">
+                Paste structured recipe JSON (from ChatGPT or other tools) to
+                prefill a draft that you can review and save.
+              </p>
+            </div>
+          </button>
         </section>
 
         <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_20rem] xl:items-start">

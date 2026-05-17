@@ -224,13 +224,6 @@ export default function RecipeJsonImport({
             >
               {messages?.parseButton ?? (isParsing ? "Parsing..." : "Parse JSON")}
             </button>
-            <button
-              type="button"
-              onClick={insertExample}
-              className="rounded-2xl border border-border bg-background px-4 py-2 text-sm font-medium transition hover:border-primary hover:text-primary"
-            >
-              {messages?.insertExample ?? "Insert example"}
-            </button>
             {headerActions}
           </div>
 
