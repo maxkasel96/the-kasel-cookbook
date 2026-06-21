@@ -817,6 +817,47 @@ p {
   color: var(--muted-foreground);
 }
 
+.recipe-chat-quick-prompt {
+  border: 1px solid var(--border);
+  background: rgba(255, 248, 237, 0.78);
+  color: var(--text-muted);
+}
+
+.recipe-chat-quick-prompt:hover:not(:disabled) {
+  border-color: rgba(61, 97, 69, 0.32);
+  background: rgba(61, 97, 69, 0.1);
+  color: var(--primary);
+}
+
+.recipe-chat-messages {
+  max-height: min(30rem, 58vh);
+  overflow-y: auto;
+}
+
+.recipe-chat-message {
+  border: 1px solid var(--border);
+}
+
+.recipe-chat-message--user {
+  margin-left: auto;
+  max-width: 88%;
+  background: var(--primary);
+  color: var(--primary-foreground);
+}
+
+.recipe-chat-message--assistant {
+  margin-right: auto;
+  max-width: 88%;
+  background: var(--muted);
+  color: var(--text);
+}
+
+.recipe-chat-empty {
+  border: 1px dashed var(--border);
+  background: rgba(243, 227, 200, 0.36);
+  color: var(--muted-foreground);
+}
+
 .recipe-ingredient-item {
   border-color: transparent;
 }
