@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation'
 import { getMeals } from '@/lib/db/meals'
 import { getRecipeBySlug } from '@/lib/db/recipes'
 import FavoriteRecipeButton from './FavoriteRecipeButton'
+import RecipeAiChat from './RecipeAiChat'
 import RecipeViewTracker from './RecipeViewTracker'
 import RecipeServingsSection from './recipe-servings-section'
 import ScreenWakeLockButton from './ScreenWakeLockButton'
@@ -187,6 +188,12 @@ export default async function RecipeDetailPage({
         steps={recipe.recipe_instruction_steps ?? []}
         meals={meals}
         recipeId={recipe.id}
+        recipeTitle={recipe.title}
+      />
+
+      <RecipeAiChat
+        recipeId={String(recipe.id)}
+        recipeSlug={recipe.slug}
         recipeTitle={recipe.title}
       />
 

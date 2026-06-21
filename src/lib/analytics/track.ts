@@ -49,6 +49,12 @@ export function trackShoppingItemRemoved(
   pushEvent(ANALYTICS_EVENTS.SHOPPING_ITEM_REMOVED, payload)
 }
 
+export function trackRecipeAiChatSubmitted(
+  payload: AnalyticsEventPayloadMap[typeof ANALYTICS_EVENTS.RECIPE_AI_CHAT_SUBMITTED]
+) {
+  pushEvent(ANALYTICS_EVENTS.RECIPE_AI_CHAT_SUBMITTED, payload)
+}
+
 export function trackAdminRecipeCreated(
   payload: AnalyticsEventPayloadMap[typeof ANALYTICS_EVENTS.ADMIN_RECIPE_CREATED]
 ) {

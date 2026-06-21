@@ -7,6 +7,7 @@ export const ANALYTICS_EVENTS = {
   SHOPPING_ITEM_ADDED: 'shopping_item_added',
   SHOPPING_ITEM_TOGGLED: 'shopping_item_toggled',
   SHOPPING_ITEM_REMOVED: 'shopping_item_removed',
+  RECIPE_AI_CHAT_SUBMITTED: 'recipe_ai_chat_submitted',
   ADMIN_RECIPE_CREATED: 'admin_recipe_created',
   ADMIN_RECIPE_UPDATED: 'admin_recipe_updated',
 } as const
@@ -68,6 +69,12 @@ export type ShoppingItemRemovedPayload = {
   item_name: string
 }
 
+export type RecipeAiChatSubmittedPayload = {
+  recipe_id: string
+  recipe_title: string
+  recipe_slug: string
+}
+
 export type AdminRecipeCreatedPayload = {
   recipe_id?: string
   recipe_title: string
@@ -91,6 +98,7 @@ export type AnalyticsEventPayloadMap = {
   [ANALYTICS_EVENTS.SHOPPING_ITEM_ADDED]: ShoppingItemAddedPayload
   [ANALYTICS_EVENTS.SHOPPING_ITEM_TOGGLED]: ShoppingItemToggledPayload
   [ANALYTICS_EVENTS.SHOPPING_ITEM_REMOVED]: ShoppingItemRemovedPayload
+  [ANALYTICS_EVENTS.RECIPE_AI_CHAT_SUBMITTED]: RecipeAiChatSubmittedPayload
   [ANALYTICS_EVENTS.ADMIN_RECIPE_CREATED]: AdminRecipeCreatedPayload
   [ANALYTICS_EVENTS.ADMIN_RECIPE_UPDATED]: AdminRecipeUpdatedPayload
 }
