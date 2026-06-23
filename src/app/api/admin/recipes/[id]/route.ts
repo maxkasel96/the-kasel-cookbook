@@ -54,6 +54,101 @@ type RouteParams = {
   }>;
 };
 
+export async function DELETE(_request: Request, { params }: RouteParams) {
+  const adminCheck = await ensureAdminRequest();
+  if (adminCheck.unauthorizedResponse) {
+    return adminCheck.unauthorizedResponse;
+  }
+
+  try {
+    const { id } = await params;
+    const supabase = createSupabaseAdminClient();
+
+    const { data: recipe, error: recipeLookupError } = await supabase
+      .from("recipes")
+      .select("id")
+      .eq("id", id)
+      .maybeSingle();
+
+    if (recipeLookupError) {
+      return NextResponse.json(
+        { error: recipeLookupError.message },
+        { status: 500 }
+      );
+    }
+
+    if (!recipe) {
+      return NextResponse.json(
+        { error: "Recipe not found." },
+        { status: 404 }
+      );
+    }
+
+    const { data: steps, error: stepLookupError } = await supabase
+      .from("recipe_instruction_steps")
+      .select("id")
+      .eq("recipe_id", id);
+
+    if (stepLookupError) {
+      return NextResponse.json(
+        { error: stepLookupError.message },
+        { status: 500 }
+      );
+    }
+
+    const stepIds = (steps ?? []).map((step) => step.id);
+    if (stepIds.length > 0) {
+      const { error: stepIngredientDeleteError } = await supabase
+        .from("recipe_instruction_step_ingredients")
+        .delete()
+        .in("step_id", stepIds);
+
+      if (stepIngredientDeleteError) {
+        return NextResponse.json(
+          { error: stepIngredientDeleteError.message },
+          { status: 500 }
+        );
+      }
+    }
+
+    const relatedTables = [
+      "recipe_tags",
+      "recipe_categories",
+      "recipe_revisions",
+      "meal_recipes",
+      "household_favorites",
+      "recipe_instruction_steps",
+      "recipe_ingredients",
+    ];
+
+    for (const table of relatedTables) {
+      const { error } = await supabase.from(table).delete().eq("recipe_id", id);
+      if (error) {
+        return NextResponse.json({ error: error.message }, { status: 500 });
+      }
+    }
+
+    const { error: recipeDeleteError } = await supabase
+      .from("recipes")
+      .delete()
+      .eq("id", id);
+
+    if (recipeDeleteError) {
+      return NextResponse.json(
+        { error: recipeDeleteError.message },
+        { status: 500 }
+      );
+    }
+
+    return NextResponse.json({ id }, { status: 200 });
+  } catch (error) {
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : "Unable to delete recipe." },
+      { status: 400 }
+    );
+  }
+}
+
 export async function PUT(request: Request, { params }: RouteParams) {
   const adminCheck = await ensureAdminRequest();
   if (adminCheck.unauthorizedResponse) {

@@ -25,6 +25,7 @@ const navigation: NavItem[] = [
 ];
 
 const secondaryNavigation: NavItem[] = [
+  { label: "Manage Recipes", href: "/admin/recipes", match: "exact" },
   { label: "Favorites", href: "/favorites", match: "exact" },
   { label: "Meals", href: "/meals", match: "prefix" },
   { label: "Shopping List", href: "/shopping-list", match: "exact" },
