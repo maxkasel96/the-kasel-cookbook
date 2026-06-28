@@ -745,6 +745,8 @@ p {
     var(--shadow-inset);
   color: var(--text);
   padding: 0.8rem;
+  touch-action: pan-y;
+  user-select: none;
 }
 
 .meal-recipe-navigator__context {
