@@ -2,8 +2,8 @@
 
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { useRef } from 'react'
-import type { TouchEvent } from 'react'
+import { useCallback, useEffect, useRef } from 'react'
+import type { TouchEvent as ReactTouchEvent } from 'react'
 
 type MealRecipeNavigationItem = {
   slug: string
@@ -29,6 +29,30 @@ const getRecipeHref = (recipeSlug: string, mealSlug: string) =>
 
 const SWIPE_DISTANCE_THRESHOLD = 50
 const SWIPE_VERTICAL_DRIFT_LIMIT = 45
+const PAGE_SWIPE_IGNORE_SELECTOR = [
+  'a',
+  'button',
+  'input',
+  'select',
+  'textarea',
+  'label',
+  'summary',
+  '[role="button"]',
+  '[contenteditable="true"]',
+  '.meal-recipe-navigator',
+  '.recipe-meal-assignment',
+  '.recipe-chat-quick-prompt',
+  '.recipe-chat-messages',
+  '.recipe-detail-floating-actions',
+].join(',')
+
+const isPageSwipeIgnoredTarget = (target: EventTarget | null) => {
+  if (!(target instanceof Element)) {
+    return true
+  }
+
+  return Boolean(target.closest(PAGE_SWIPE_IGNORE_SELECTOR))
+}
 
 export default function MealRecipeNavigator({
   meal,
@@ -48,7 +72,22 @@ export default function MealRecipeNavigator({
     ? getRecipeHref(nextRecipe.slug, meal.slug)
     : null
 
-  const handleTouchStart = (event: TouchEvent<HTMLElement>) => {
+  const navigateForSwipe = useCallback(
+    (deltaX: number) => {
+      const targetHref = deltaX < 0 ? nextRecipeHref : previousRecipeHref
+
+      if (targetHref) {
+        router.push(targetHref)
+      }
+    },
+    [nextRecipeHref, previousRecipeHref, router]
+  )
+
+  const shouldHandleSwipe = (deltaX: number, deltaY: number) =>
+    Math.abs(deltaX) >= SWIPE_DISTANCE_THRESHOLD &&
+    Math.abs(deltaY) <= SWIPE_VERTICAL_DRIFT_LIMIT
+
+  const handleTouchStart = (event: ReactTouchEvent<HTMLElement>) => {
     const touch = event.touches[0]
 
     if (!touch) return
@@ -59,7 +98,7 @@ export default function MealRecipeNavigator({
     }
   }
 
-  const handleTouchEnd = (event: TouchEvent<HTMLElement>) => {
+  const handleTouchEnd = (event: ReactTouchEvent<HTMLElement>) => {
     const touchStart = touchStartRef.current
     const touch = event.changedTouches[0]
     touchStartRef.current = null
@@ -69,19 +108,61 @@ export default function MealRecipeNavigator({
     const deltaX = touch.clientX - touchStart.x
     const deltaY = touch.clientY - touchStart.y
 
-    if (
-      Math.abs(deltaX) < SWIPE_DISTANCE_THRESHOLD ||
-      Math.abs(deltaY) > SWIPE_VERTICAL_DRIFT_LIMIT
-    ) {
+    if (!shouldHandleSwipe(deltaX, deltaY)) {
       return
     }
 
-    const targetHref = deltaX < 0 ? nextRecipeHref : previousRecipeHref
-
-    if (targetHref) {
-      router.push(targetHref)
-    }
+    navigateForSwipe(deltaX)
   }
+
+  useEffect(() => {
+    let pageTouchStart: TouchPosition | null = null
+
+    const handlePageTouchStart = (event: TouchEvent) => {
+      if (isPageSwipeIgnoredTarget(event.target)) {
+        pageTouchStart = null
+        return
+      }
+
+      const touch = event.touches[0]
+
+      if (!touch) return
+
+      pageTouchStart = {
+        x: touch.clientX,
+        y: touch.clientY,
+      }
+    }
+
+    const handlePageTouchEnd = (event: TouchEvent) => {
+      const touchStart = pageTouchStart
+      const touch = event.changedTouches[0]
+      pageTouchStart = null
+
+      if (!touchStart || !touch) return
+
+      const deltaX = touch.clientX - touchStart.x
+      const deltaY = touch.clientY - touchStart.y
+
+      if (!shouldHandleSwipe(deltaX, deltaY)) {
+        return
+      }
+
+      navigateForSwipe(deltaX)
+    }
+
+    document.addEventListener('touchstart', handlePageTouchStart, {
+      passive: true,
+    })
+    document.addEventListener('touchend', handlePageTouchEnd, {
+      passive: true,
+    })
+
+    return () => {
+      document.removeEventListener('touchstart', handlePageTouchStart)
+      document.removeEventListener('touchend', handlePageTouchEnd)
+    }
+  }, [navigateForSwipe])
 
   return (
     <nav
