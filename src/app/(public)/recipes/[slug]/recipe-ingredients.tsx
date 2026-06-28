@@ -126,12 +126,14 @@ export function RecipeIngredients({
             return (
               <li
                 key={ingredient.id}
-                className="recipe-ingredient-item flex flex-col gap-2 rounded-xl border px-2 py-2 transition sm:flex-row sm:items-center sm:justify-between"
+                className="recipe-ingredient-item grid grid-cols-[1fr_auto] items-center gap-3 rounded-lg border px-3 py-2.5 transition"
               >
-                <div className="flex flex-col">
-                  <span className="font-medium">{displayLabel}</span>
+                <div className="min-w-0">
+                  <span className="block text-sm font-medium leading-6">
+                    {displayLabel}
+                  </span>
                   {(ingredient.note || ingredient.is_optional) && (
-                    <span className="text-xs text-muted-foreground">
+                    <span className="recipe-ingredient-meta mt-1 inline-flex max-w-full items-center rounded-full px-2 py-0.5 text-xs leading-5">
                       {ingredient.note}
                       {ingredient.note && ingredient.is_optional ? ' · ' : ''}
                       {ingredient.is_optional ? 'Optional' : ''}
@@ -142,11 +144,11 @@ export function RecipeIngredients({
                   type="button"
                   disabled={isPending}
                   onClick={() => handleAdd(ingredient, displayLabel)}
-                  className="recipe-add-button flex h-9 w-9 items-center justify-center rounded-full text-base font-semibold transition disabled:cursor-not-allowed disabled:opacity-60"
+                  className="recipe-add-button flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-lg font-semibold leading-none transition disabled:cursor-not-allowed disabled:opacity-60"
                   aria-label="Add to list"
                   title="Add to list"
                 >
-                  +
+                  <span aria-hidden="true">{isPending ? '...' : '+'}</span>
                 </button>
               </li>
             )

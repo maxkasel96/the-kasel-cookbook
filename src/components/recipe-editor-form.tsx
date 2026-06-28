@@ -333,14 +333,6 @@ export default function RecipeEditorForm({
         </div>
       ) : null}
 
-      {tertiaryAction ? (
-        <div className="lg:hidden">
-          <a className="recipe-editor-tertiary-link" href={tertiaryAction.href}>
-            {tertiaryAction.label}
-          </a>
-        </div>
-      ) : null}
-
       <div className="recipe-editor-layout">
         <div className="recipe-editor-main">
           <section className="recipe-editor-section">
@@ -516,27 +508,32 @@ export default function RecipeEditorForm({
               </div>
             </div>
 
-            <div className="recipe-editor-ingredient-head">
-              <span>#</span>
-              <span>Ingredient</span>
-              <span>Qty</span>
-              <span>Unit</span>
-              <span>Note</span>
-              <span>Optional</span>
-              <span className="text-right">Remove</span>
-            </div>
-
             <div className="recipe-editor-ingredient-list">
-              {ingredients.map((ingredient, index) => (
+              {ingredients.map((ingredient) => (
                 <div
                   key={ingredient.id}
                   className="recipe-editor-ingredient-row"
                   data-has-value={ingredient.ingredientText.trim() ? "true" : "false"}
                 >
-                  <div className="recipe-editor-ingredient-row__mobile-head lg:hidden">
-                    <span className="recipe-editor-row-number">Ingredient {index + 1}</span>
+                  <div className="recipe-editor-ingredient-card-head">
+                    <label className="recipe-editor-field recipe-editor-ingredient-main">
+                      <span className="recipe-editor-label">Ingredient</span>
+                      <input
+                        className="recipe-editor-input"
+                        placeholder="Chicken thighs"
+                        value={ingredient.ingredientText}
+                        onChange={(event) =>
+                          onHandleIngredientChange(
+                            ingredient.id,
+                            "ingredientText",
+                            event.target.value
+                          )
+                        }
+                      />
+                    </label>
+
                     <button
-                      className="recipe-editor-remove"
+                      className="recipe-editor-remove recipe-editor-ingredient-remove"
                       type="button"
                       onClick={() => onRemoveIngredient(ingredient.id)}
                     >
@@ -544,29 +541,9 @@ export default function RecipeEditorForm({
                     </button>
                   </div>
 
-                  <div className="recipe-editor-ingredient-index hidden lg:flex">
-                    <span className="recipe-editor-row-badge">{index + 1}</span>
-                  </div>
-
-                  <label className="recipe-editor-field">
-                    <span className="recipe-editor-label lg:sr-only">Ingredient</span>
-                    <input
-                      className="recipe-editor-input"
-                      placeholder="Chicken thighs"
-                      value={ingredient.ingredientText}
-                      onChange={(event) =>
-                        onHandleIngredientChange(
-                          ingredient.id,
-                          "ingredientText",
-                          event.target.value
-                        )
-                      }
-                    />
-                  </label>
-
-                  <div className="recipe-editor-ingredient-inline">
+                  <div className="recipe-editor-ingredient-fields">
                     <label className="recipe-editor-field">
-                      <span className="recipe-editor-label lg:sr-only">Quantity</span>
+                      <span className="recipe-editor-label">Quantity</span>
                       <input
                         className="recipe-editor-input"
                         inputMode="decimal"
@@ -583,7 +560,7 @@ export default function RecipeEditorForm({
                     </label>
 
                     <label className="recipe-editor-field">
-                      <span className="recipe-editor-label lg:sr-only">Unit</span>
+                      <span className="recipe-editor-label">Unit</span>
                       <input
                         className="recipe-editor-input"
                         placeholder="lbs"
@@ -597,46 +574,38 @@ export default function RecipeEditorForm({
                         }
                       />
                     </label>
+
+                    <label className="recipe-editor-field recipe-editor-ingredient-note">
+                      <span className="recipe-editor-label">Note</span>
+                      <input
+                        className="recipe-editor-input"
+                        placeholder="Finely chopped"
+                        value={ingredient.note}
+                        onChange={(event) =>
+                          onHandleIngredientChange(
+                            ingredient.id,
+                            "note",
+                            event.target.value
+                          )
+                        }
+                      />
+                    </label>
+
+                    <label className="recipe-editor-checkbox recipe-editor-ingredient-optional">
+                      <input
+                        type="checkbox"
+                        checked={ingredient.isOptional}
+                        onChange={(event) =>
+                          onHandleIngredientChange(
+                            ingredient.id,
+                            "isOptional",
+                            event.target.checked
+                          )
+                        }
+                      />
+                      <span>Optional</span>
+                    </label>
                   </div>
-
-                  <label className="recipe-editor-field recipe-editor-ingredient-note">
-                    <span className="recipe-editor-label lg:sr-only">Note</span>
-                    <input
-                      className="recipe-editor-input"
-                      placeholder="Finely chopped"
-                      value={ingredient.note}
-                      onChange={(event) =>
-                        onHandleIngredientChange(
-                          ingredient.id,
-                          "note",
-                          event.target.value
-                        )
-                      }
-                    />
-                  </label>
-
-                  <label className="recipe-editor-checkbox">
-                    <input
-                      type="checkbox"
-                      checked={ingredient.isOptional}
-                      onChange={(event) =>
-                        onHandleIngredientChange(
-                          ingredient.id,
-                          "isOptional",
-                          event.target.checked
-                        )
-                      }
-                    />
-                    <span>Optional</span>
-                  </label>
-
-                  <button
-                    className="recipe-editor-remove hidden lg:inline-flex"
-                    type="button"
-                    onClick={() => onRemoveIngredient(ingredient.id)}
-                  >
-                    Remove
-                  </button>
                 </div>
               ))}
             </div>
@@ -801,7 +770,10 @@ export default function RecipeEditorForm({
                 {isSaving ? primaryActionPendingLabel : primaryActionLabel}
               </button>
               {tertiaryAction ? (
-                <a className="recipe-editor-tertiary-link" href={tertiaryAction.href}>
+                <a
+                  className="recipe-editor-action recipe-editor-action--secondary"
+                  href={tertiaryAction.href}
+                >
                   {tertiaryAction.label}
                 </a>
               ) : null}
@@ -827,6 +799,14 @@ export default function RecipeEditorForm({
       </div>
 
       <div className="recipe-editor-mobile-bar">
+        {tertiaryAction ? (
+          <a
+            className="recipe-editor-action recipe-editor-action--secondary"
+            href={tertiaryAction.href}
+          >
+            {tertiaryAction.label}
+          </a>
+        ) : null}
         <button
           className="recipe-editor-action recipe-editor-action--primary"
           type="button"

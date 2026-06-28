@@ -92,7 +92,7 @@ export async function POST(request: Request) {
         status,
         is_deleted: body.isDeleted ?? false,
       })
-      .select("id")
+      .select("id, slug")
       .single();
 
     if (recipeError || !recipe) {
@@ -322,7 +322,10 @@ export async function POST(request: Request) {
       }
     }
 
-    return NextResponse.json({ id: recipe.id }, { status: 201 });
+    return NextResponse.json(
+      { id: recipe.id, slug: recipe.slug },
+      { status: 201 }
+    );
   } catch (error) {
     return NextResponse.json(
       { error: error instanceof Error ? error.message : "Invalid request." },
