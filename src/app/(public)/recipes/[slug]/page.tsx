@@ -1,9 +1,10 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 
-import { getMeals } from '@/lib/db/meals'
+import { getMealBySlug, getMeals } from '@/lib/db/meals'
 import { getRecipeBySlug } from '@/lib/db/recipes'
 import FavoriteRecipeButton from './FavoriteRecipeButton'
+import MealRecipeNavigator from './MealRecipeNavigator'
 import RecipeAiChat from './RecipeAiChat'
 import RecipeViewTracker from './RecipeViewTracker'
 import RecipeServingsSection from './recipe-servings-section'
@@ -11,6 +12,9 @@ import ScreenWakeLockButton from './ScreenWakeLockButton'
 
 type RecipeDetailPageProps = {
   params: Promise<{ slug: string }>
+  searchParams?: Promise<{
+    meal?: string | string[]
+  }>
 }
 
 type LinkedName = {
@@ -20,6 +24,16 @@ type LinkedName = {
 type RecipeMetadataLink = {
   tags?: LinkedName | LinkedName[] | null
   categories?: LinkedName | LinkedName[] | null
+}
+
+type MealRecipeLink = {
+  id?: string | number | null
+  slug?: string | null
+  title?: string | null
+}
+
+type MealRecipeJoin = {
+  recipes?: MealRecipeLink | MealRecipeLink[] | null
 }
 
 const isPresentString = (value: string | null | undefined): value is string =>
@@ -59,16 +73,56 @@ const getLinkedNames = (
     })
     .filter(isPresentString) ?? []
 
+const getRecipeFromMealRecipe = (mealRecipe: MealRecipeJoin) => {
+  if (Array.isArray(mealRecipe?.recipes)) {
+    return mealRecipe.recipes[0] ?? null
+  }
+
+  return mealRecipe?.recipes ?? null
+}
+
 export default async function RecipeDetailPage({
   params,
+  searchParams,
 }: RecipeDetailPageProps) {
   const { slug } = await params
+  const resolvedSearchParams = await searchParams
+  const mealSlugParam = resolvedSearchParams?.meal
+  const mealSlug = Array.isArray(mealSlugParam)
+    ? mealSlugParam[0]
+    : mealSlugParam
   const recipe = await getRecipeBySlug(slug)
   const meals = await getMeals()
 
   if (!recipe) {
     notFound()
   }
+
+  const activeMeal = mealSlug ? await getMealBySlug(mealSlug) : null
+  const mealRecipes =
+    activeMeal?.meal_recipes
+      ?.map((mealRecipe: MealRecipeJoin) => getRecipeFromMealRecipe(mealRecipe))
+      .filter(
+        (mealRecipe): mealRecipe is MealRecipeLink =>
+          Boolean(mealRecipe?.slug && mealRecipe?.title)
+      ) ?? []
+  const currentMealRecipeIndex = mealRecipes.findIndex(
+    (mealRecipe) => mealRecipe.slug === recipe.slug
+  )
+  const mealNavigation =
+    activeMeal && currentMealRecipeIndex >= 0 && mealRecipes.length > 1
+      ? {
+          meal: {
+            slug: activeMeal.slug,
+            title: activeMeal.title,
+          },
+          currentIndex: currentMealRecipeIndex,
+          recipes: mealRecipes.map((mealRecipe) => ({
+            slug: String(mealRecipe.slug),
+            title: String(mealRecipe.title),
+          })),
+        }
+      : null
 
   const tagList = getLinkedNames(recipe.recipe_tags, 'tags')
   const categoryList = getLinkedNames(
@@ -94,6 +148,13 @@ export default async function RecipeDetailPage({
         category={categoryList[0]}
         tags={tagList}
       />
+      {mealNavigation ? (
+        <MealRecipeNavigator
+          meal={mealNavigation.meal}
+          currentIndex={mealNavigation.currentIndex}
+          recipes={mealNavigation.recipes}
+        />
+      ) : null}
       <header className="recipe-detail-hero space-y-4">
         <div className="recipe-detail-heading flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
           <div className="space-y-3">

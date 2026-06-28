@@ -7,6 +7,25 @@ type MealDetailPageProps = {
   params: Promise<{ slug: string }>
 }
 
+type MealRecipeLink = {
+  id?: string | number | null
+  slug?: string | null
+  title?: string | null
+  description?: string | null
+}
+
+type MealRecipeJoin = {
+  recipes?: MealRecipeLink | MealRecipeLink[] | null
+}
+
+const getRecipeFromMealRecipe = (mealRecipe: MealRecipeJoin) => {
+  if (Array.isArray(mealRecipe?.recipes)) {
+    return mealRecipe.recipes[0] ?? null
+  }
+
+  return mealRecipe?.recipes ?? null
+}
+
 export default async function MealDetailPage({ params }: MealDetailPageProps) {
   const { slug } = await params
   const meal = await getMealBySlug(slug)
@@ -17,13 +36,11 @@ export default async function MealDetailPage({ params }: MealDetailPageProps) {
 
   const recipes =
     meal.meal_recipes
-      ?.map((mealRecipe: any) => {
-        if (Array.isArray(mealRecipe?.recipes)) {
-          return mealRecipe.recipes[0] ?? null
-        }
-        return mealRecipe?.recipes ?? null
-      })
-      .filter(Boolean) ?? []
+      ?.map((mealRecipe: MealRecipeJoin) => getRecipeFromMealRecipe(mealRecipe))
+      .filter(
+        (recipe): recipe is MealRecipeLink =>
+          Boolean(recipe?.id && recipe?.slug && recipe?.title)
+      ) ?? []
 
   return (
     <main className="mx-auto flex w-full max-w-5xl flex-col gap-8 px-6 py-10">
@@ -51,10 +68,12 @@ export default async function MealDetailPage({ params }: MealDetailPageProps) {
         </p>
       ) : (
         <section className="grid gap-6 sm:grid-cols-2">
-          {recipes.map((recipe: any) => (
+          {recipes.map((recipe) => (
             <Link
               key={recipe.id}
-              href={`/recipes/${recipe.slug}`}
+              href={`/recipes/${recipe.slug}?meal=${encodeURIComponent(
+                meal.slug
+              )}`}
               className="group flex h-full flex-col rounded-xl border border-muted/60 bg-background p-5 shadow-sm transition hover:-translate-y-1 hover:border-muted hover:shadow-md"
             >
               <div className="flex flex-1 flex-col gap-3">
