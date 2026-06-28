@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 
 import RecipeEditorForm from "@/components/recipe-editor-form";
 import RecipeImportPanel from "@/components/recipe-import-panel";
@@ -60,6 +61,7 @@ const createEmptyStep = (): InstructionStep => ({
 });
 
 export default function AdminCreateRecipePage() {
+  const router = useRouter();
   const [startMode, setStartMode] = useState<RecipeStartMode>(null);
   const [title, setTitle] = useState("");
   const [metadata, setMetadata] = useState({
@@ -69,6 +71,7 @@ export default function AdminCreateRecipePage() {
   });
   const [description, setDescription] = useState("");
   const [isSaving, setIsSaving] = useState(false);
+  const [isRedirecting, setIsRedirecting] = useState(false);
   const [isLoadingTags, setIsLoadingTags] = useState(false);
   const [isLoadingCategories, setIsLoadingCategories] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
@@ -514,6 +517,7 @@ export default function AdminCreateRecipePage() {
     }
 
     setIsSaving(true);
+    let shouldRedirect = false;
 
     try {
       const response = await fetch("/api/admin/recipes", {
@@ -539,17 +543,27 @@ export default function AdminCreateRecipePage() {
         publish_status: status,
       });
 
+      if (!responsePayload.slug) {
+        throw new Error("Recipe saved, but no recipe URL was returned.");
+      }
+
       setFormStatus(
         status === "published"
-          ? "Recipe saved and published."
-          : "Draft saved successfully."
+          ? "Recipe saved. Opening the recipe view..."
+          : "Draft saved. Opening the recipe view..."
       );
+      shouldRedirect = true;
+      setIsRedirecting(true);
+      router.push(`/recipes/${responsePayload.slug}`);
     } catch (error) {
       setFormError(
         error instanceof Error ? error.message : "Unable to save recipe."
       );
+      setIsRedirecting(false);
     } finally {
-      setIsSaving(false);
+      if (!shouldRedirect) {
+        setIsSaving(false);
+      }
     }
   };
 
@@ -704,7 +718,7 @@ export default function AdminCreateRecipePage() {
                 ingredients={ingredients}
                 isLoadingCategories={isLoadingCategories}
                 isLoadingTags={isLoadingTags}
-                isSaving={isSaving}
+                isSaving={isSaving || isRedirecting}
                 newCategoryName={newCategoryName}
                 newTagName={newTagName}
                 onAddIngredient={addIngredient}
@@ -742,7 +756,9 @@ export default function AdminCreateRecipePage() {
                 onToggleIngredientStep={toggleIngredientStep}
                 prepMinutes={metadata.prepMinutes}
                 primaryActionLabel="Save recipe"
-                primaryActionPendingLabel="Saving..."
+                primaryActionPendingLabel={
+                  isRedirecting ? "Opening recipe..." : "Saving..."
+                }
                 selectedCategories={selectedCategories}
                 selectedTags={selectedTags}
                 servings={metadata.servings}
@@ -767,4 +783,3 @@ export default function AdminCreateRecipePage() {
     </div>
   );
 }
-

@@ -109,44 +109,55 @@ export default function MealAssignment({
   return (
     <form
       onSubmit={handleSubmit}
-      className="recipe-detail-panel rounded-2xl p-6"
+      className="recipe-detail-panel recipe-meal-assignment rounded-2xl p-6"
     >
-      <div className="space-y-2">
-        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-          Meals
-        </p>
-        <h2 className="text-lg font-semibold text-foreground">
-          Add this recipe to a meal
-        </h2>
-        <p className="text-sm text-muted-foreground">
-          Choose an existing meal or create a new one for {recipeTitle}.
+      <div className="recipe-meal-assignment__header">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+            Meals
+          </p>
+          <h2 className="text-lg font-semibold text-foreground">
+            Add this recipe to a meal
+          </h2>
+        </div>
+        <p className="recipe-meal-assignment__summary">
+          Choose a saved meal or name a new one.
         </p>
       </div>
 
-      <div className="mt-5 grid gap-4 md:grid-cols-2">
-        <label className="space-y-2 text-sm font-medium text-foreground">
-          Select a meal
-          <select
-            value={selectedMealId}
-            onChange={(event) => {
-              setSelectedMealId(event.target.value)
-              if (event.target.value) {
-                setNewMealTitle('')
-              }
-            }}
-            className="recipe-detail-input w-full rounded-md px-3 py-2 text-sm shadow-sm"
+      <div className="recipe-meal-assignment__body">
+        <div className="recipe-meal-assignment__control">
+          <label
+            className="recipe-meal-assignment__label"
+            htmlFor="recipe-meal-select"
           >
-            <option value="">Choose a saved meal</option>
-            {meals.map((meal) => (
-              <option key={meal.id} value={meal.id}>
-                {meal.title}
-              </option>
-            ))}
-          </select>
-        </label>
+            Saved meal
+          </label>
+          <div className="recipe-meal-assignment__select-wrap">
+            <select
+              id="recipe-meal-select"
+              value={selectedMealId}
+              onChange={(event) => {
+                setSelectedMealId(event.target.value)
+                if (event.target.value) {
+                  setNewMealTitle('')
+                }
+              }}
+              className="recipe-detail-input recipe-meal-assignment__select"
+            >
+              <option value="">Choose a saved meal</option>
+              {meals.map((meal) => (
+                <option key={meal.id} value={meal.id}>
+                  {meal.title}
+                </option>
+              ))}
+            </select>
+            <span aria-hidden="true" className="recipe-meal-assignment__chevron" />
+          </div>
+        </div>
 
-        <label className="space-y-2 text-sm font-medium text-foreground">
-          Or create a new meal
+        <label className="recipe-meal-assignment__control">
+          <span className="recipe-meal-assignment__label">New meal</span>
           <input
             type="text"
             value={newMealTitle}
@@ -157,26 +168,22 @@ export default function MealAssignment({
               }
             }}
             placeholder="e.g. Sunday dinner"
-            className="recipe-detail-input w-full rounded-md px-3 py-2 text-sm shadow-sm"
+            className="recipe-detail-input recipe-meal-assignment__input"
           />
         </label>
       </div>
 
-      <div className="mt-4 flex flex-wrap items-center gap-3">
+      <div className="recipe-meal-assignment__footer">
         <button
           type="submit"
           disabled={!canSubmit || isSubmitting}
-          className="recipe-detail-primary-action rounded-full px-4 py-2 text-sm font-semibold shadow-sm transition disabled:cursor-not-allowed disabled:opacity-60"
+          className="recipe-detail-primary-action recipe-meal-assignment__button rounded-full px-4 py-2 text-sm font-semibold shadow-sm transition disabled:cursor-not-allowed disabled:opacity-60"
         >
           {isSubmitting ? 'Saving...' : 'Add to meal'}
         </button>
         {status ? (
           <p
-            className={`text-sm ${
-              status.type === 'success'
-                ? 'text-success'
-                : 'text-danger'
-            }`}
+            className={`recipe-meal-assignment__status recipe-meal-assignment__status--${status.type}`}
             role="status"
           >
             {status.message}
