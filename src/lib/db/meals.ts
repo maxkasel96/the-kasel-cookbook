@@ -1,7 +1,23 @@
+import { isLocalAuthBypassEnabled } from '@/lib/auth/local'
+import { createSupabaseAdminClient } from '@/lib/supabase/admin'
 import { createSupabaseServerClient } from '@/lib/supabase/server'
 
+function shouldUseLocalMealReadBypass() {
+  return (
+    isLocalAuthBypassEnabled() && Boolean(process.env.SUPABASE_SERVICE_ROLE_KEY)
+  )
+}
+
+async function createMealReadClient() {
+  if (shouldUseLocalMealReadBypass()) {
+    return createSupabaseAdminClient()
+  }
+
+  return createSupabaseServerClient()
+}
+
 export async function getMeals() {
-  const supabase = await createSupabaseServerClient()
+  const supabase = await createMealReadClient()
 
   const { data, error } = await supabase
     .from('meals')
@@ -24,7 +40,7 @@ export async function getMeals() {
 }
 
 export async function getMealBySlug(slug: string) {
-  const supabase = await createSupabaseServerClient()
+  const supabase = await createMealReadClient()
 
   const { data, error } = await supabase
     .from('meals')
