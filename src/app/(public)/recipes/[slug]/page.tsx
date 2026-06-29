@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { Clock, Flame, Users } from 'lucide-react'
+import { Clock, Pencil, Sparkles, Timer, Users } from 'lucide-react'
 import { notFound } from 'next/navigation'
 import type { ReactNode } from 'react'
 
@@ -150,7 +150,7 @@ export default async function RecipeDetailPage({
       ? {
           label: 'Cook',
           value: formatMinutes(recipe.cook_minutes),
-          icon: <Flame aria-hidden="true" />,
+          icon: <Timer aria-hidden="true" />,
         }
       : null,
     recipe.servings
@@ -183,82 +183,94 @@ export default async function RecipeDetailPage({
         />
       ) : null}
       <Panel className="recipe-detail-hero">
-        <div className="recipe-detail-heading">
-          <div className="recipe-detail-heading__copy">
-            <p className="recipe-detail-kicker">Saved recipe</p>
-            <h1>{recipe.title}</h1>
-            {recipe.description ? <p>{recipe.description}</p> : null}
+        <div className="recipe-detail-hero__content">
+          <div className="recipe-detail-heading">
+            <div className="recipe-detail-heading__copy">
+              <h1>{recipe.title}</h1>
+              {recipe.description ? <p>{recipe.description}</p> : null}
+            </div>
+            <div className="recipe-detail-header-actions" aria-label="Recipe actions">
+              <FavoriteRecipeButton
+                recipe={{
+                  id: recipe.id,
+                  slug: recipe.slug,
+                  title: recipe.title,
+                  description: recipe.description,
+                  prep_minutes: recipe.prep_minutes,
+                  cook_minutes: recipe.cook_minutes,
+                  servings: recipe.servings,
+                  recipe_tags: recipe.recipe_tags,
+                  recipe_categories: recipe.recipe_categories,
+                }}
+              />
+              <Button
+                as={Link}
+                href={`/recipes/${recipe.slug}/edit`}
+                size="sm"
+                className="recipe-detail-edit-action"
+              >
+                <Pencil aria-hidden="true" />
+                <span>Edit</span>
+              </Button>
+            </div>
           </div>
-          <div className="recipe-detail-header-actions" aria-label="Recipe actions">
-            <FavoriteRecipeButton
-              recipe={{
-                id: recipe.id,
-                slug: recipe.slug,
-                title: recipe.title,
-                description: recipe.description,
-                prep_minutes: recipe.prep_minutes,
-                cook_minutes: recipe.cook_minutes,
-                servings: recipe.servings,
-                recipe_tags: recipe.recipe_tags,
-                recipe_categories: recipe.recipe_categories,
-              }}
-            />
-            <Button as={Link} href={`/recipes/${recipe.slug}/edit`} size="sm">
-              Edit
-            </Button>
+
+          {detailItems.length ? (
+            <div className="recipe-detail-stats">
+              {detailItems.map((item) => (
+                <MetadataPill
+                  key={item.label}
+                  icon={item.icon}
+                  label={item.label}
+                  value={item.value}
+                />
+              ))}
+            </div>
+          ) : (
+            <p className="recipe-detail-muted">
+              Prep, cook, and serving details have not been added yet.
+            </p>
+          )}
+
+          <div className="recipe-detail-taxonomy">
+            {categoryList.length ? (
+              <div>
+                <span className="recipe-detail-taxonomy__label">
+                  Categories
+                </span>
+                {categoryList.map((category: string) => (
+                  <span key={category} className="recipe-detail-chip">
+                    {category}
+                  </span>
+                ))}
+              </div>
+            ) : (
+              <p className="recipe-detail-muted">No categories have been associated with this recipe.</p>
+            )}
+            {tagList.length ? (
+              <div>
+                <span className="recipe-detail-taxonomy__label">
+                  Tags
+                </span>
+                {tagList.map((tag: string) => (
+                  <span key={tag} className="recipe-detail-chip">
+                    {tag}
+                  </span>
+                ))}
+              </div>
+            ) : (
+              <p className="recipe-detail-muted">No tags have been associated with this recipe.</p>
+            )}
           </div>
         </div>
-        {detailItems.length ? (
-          <div className="recipe-detail-stats">
-            {detailItems.map((item) => (
-              <MetadataPill
-                key={item.label}
-                icon={item.icon}
-                label={item.label}
-                value={item.value}
-              />
-            ))}
+        <div className="recipe-detail-visual" aria-hidden="true">
+          <div className="recipe-detail-visual__plate">
+            <Sparkles />
           </div>
-        ) : (
-          <p className="recipe-detail-muted">
-            Prep, cook, and serving details have not been added yet.
-          </p>
-        )}
-        <div className="recipe-detail-taxonomy">
-          {categoryList.length ? (
-            <div>
-              <span className="recipe-detail-taxonomy__label">
-                Categories
-              </span>
-              {categoryList.map((category: string) => (
-                <span
-                  key={category}
-                  className="recipe-detail-chip"
-                >
-                  {category}
-                </span>
-              ))}
-            </div>
-          ) : (
-            <p className="recipe-detail-muted">No categories have been associated with this recipe.</p>
-          )}
-          {tagList.length ? (
-            <div>
-              <span className="recipe-detail-taxonomy__label">
-                Tags
-              </span>
-              {tagList.map((tag: string) => (
-                <span
-                  key={tag}
-                  className="recipe-detail-chip"
-                >
-                  {tag}
-                </span>
-              ))}
-            </div>
-          ) : (
-            <p className="recipe-detail-muted">No tags have been associated with this recipe.</p>
-          )}
+          <div className="recipe-detail-visual__meta">
+            <Timer />
+            <span>Ready for cooking mode</span>
+          </div>
         </div>
       </Panel>
 

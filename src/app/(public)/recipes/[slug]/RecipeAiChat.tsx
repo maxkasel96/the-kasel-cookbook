@@ -144,7 +144,7 @@ export default function RecipeAiChat({
               setDraft(prompt)
               inputRef.current?.focus()
             }}
-            className="recipe-chat-quick-prompt rounded-full px-3 py-1.5 text-xs font-semibold transition disabled:cursor-not-allowed disabled:opacity-60"
+            className="recipe-chat-quick-prompt px-3 py-1.5 text-xs font-semibold transition disabled:cursor-not-allowed disabled:opacity-60"
           >
             {prompt}
           </button>
@@ -220,7 +220,7 @@ export default function RecipeAiChat({
           <button
             type="submit"
             disabled={!canSubmit}
-            className="recipe-detail-primary-action rounded-full px-5 py-2 text-sm font-semibold shadow-sm transition disabled:cursor-not-allowed disabled:opacity-60"
+            className="recipe-detail-primary-action px-5 py-2 text-sm font-semibold shadow-sm transition disabled:cursor-not-allowed disabled:opacity-60"
           >
             {isSubmitting ? 'Asking...' : (
               <>

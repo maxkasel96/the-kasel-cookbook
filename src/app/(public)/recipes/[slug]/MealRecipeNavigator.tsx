@@ -62,15 +62,11 @@ export default function MealRecipeNavigator({
   const router = useRouter()
   const touchStartRef = useRef<TouchPosition | null>(null)
   const recipeCount = recipes.length
-  const previousRecipe = currentIndex > 0 ? recipes[currentIndex - 1] : null
-  const nextRecipe =
-    currentIndex < recipeCount - 1 ? recipes[currentIndex + 1] : null
-  const previousRecipeHref = previousRecipe
-    ? getRecipeHref(previousRecipe.slug, meal.slug)
-    : null
-  const nextRecipeHref = nextRecipe
-    ? getRecipeHref(nextRecipe.slug, meal.slug)
-    : null
+  const previousRecipe =
+    recipes[(currentIndex - 1 + recipeCount) % recipeCount]
+  const nextRecipe = recipes[(currentIndex + 1) % recipeCount]
+  const previousRecipeHref = getRecipeHref(previousRecipe.slug, meal.slug)
+  const nextRecipeHref = getRecipeHref(nextRecipe.slug, meal.slug)
 
   const navigateForSwipe = useCallback(
     (deltaX: number) => {
@@ -187,43 +183,23 @@ export default function MealRecipeNavigator({
       </div>
 
       <div className="meal-recipe-navigator__actions">
-        {previousRecipe && previousRecipeHref ? (
-          <Link
-            href={previousRecipeHref}
-            className="meal-recipe-navigator__link"
-            aria-label={`Previous recipe: ${previousRecipe.title}`}
-          >
-            <span aria-hidden="true">←</span>
-            <span>Previous</span>
-          </Link>
-        ) : (
-          <span
-            className="meal-recipe-navigator__link meal-recipe-navigator__link--disabled"
-            aria-disabled="true"
-          >
-            <span aria-hidden="true">←</span>
-            <span>Previous</span>
-          </span>
-        )}
+        <Link
+          href={previousRecipeHref}
+          className="meal-recipe-navigator__link"
+          aria-label={`Previous recipe: ${previousRecipe.title}`}
+        >
+          <span aria-hidden="true">←</span>
+          <span>Previous</span>
+        </Link>
 
-        {nextRecipe && nextRecipeHref ? (
-          <Link
-            href={nextRecipeHref}
-            className="meal-recipe-navigator__link meal-recipe-navigator__link--primary"
-            aria-label={`Next recipe: ${nextRecipe.title}`}
-          >
-            <span>Next</span>
-            <span aria-hidden="true">→</span>
-          </Link>
-        ) : (
-          <span
-            className="meal-recipe-navigator__link meal-recipe-navigator__link--disabled"
-            aria-disabled="true"
-          >
-            <span>Next</span>
-            <span aria-hidden="true">→</span>
-          </span>
-        )}
+        <Link
+          href={nextRecipeHref}
+          className="meal-recipe-navigator__link meal-recipe-navigator__link--primary"
+          aria-label={`Next recipe: ${nextRecipe.title}`}
+        >
+          <span>Next</span>
+          <span aria-hidden="true">→</span>
+        </Link>
       </div>
     </nav>
   )
