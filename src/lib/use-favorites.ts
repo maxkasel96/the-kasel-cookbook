@@ -40,6 +40,9 @@ export type FavoriteRecipe = {
   slug: string
   title: string
   description?: string | null
+  prep_minutes?: number | null
+  cook_minutes?: number | null
+  servings?: number | null
   recipe_tags?: RecipeTag[] | null
   recipe_categories?: RecipeCategory[] | null
 }

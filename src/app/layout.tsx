@@ -24,7 +24,7 @@ export const metadata: Metadata = {
     template: "%s | The Kasel Cookbook",
   },
   description:
-    "A family cookbook for browsing recipes, planning meals, saving favorites, and building a shared shopping list.",
+    "A family cookbook for browsing recipes, planning meals, and saving favorites.",
   manifest: "/manifest.webmanifest",
   appleWebApp: {
     capable: true,
@@ -44,7 +44,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "The Kasel Cookbook",
     description:
-      "Browse family recipes, plan meals, save favorites, and build a shared shopping list.",
+      "Browse family recipes, plan meals, and save favorites.",
     siteName: "The Kasel Cookbook",
     type: "website",
   },
@@ -70,7 +70,7 @@ export default function RootLayout({
           <AuthAnalyticsTracker />
         </Suspense>
         <PwaServiceWorker />
-        <div className="min-h-screen bg-background text-foreground">
+        <div className="app-frame">
           <SiteHeader />
           {children}
         </div>

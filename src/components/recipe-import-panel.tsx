@@ -92,8 +92,8 @@ export default function RecipeImportPanel({
   };
 
   return (
-    <div className="flex flex-col gap-6">
-      <section className="rounded-2xl border border-border bg-surface p-6 shadow-sm">
+    <div className="recipe-import-shell">
+      <section className="recipe-import-panel">
         <h2 className="text-2xl font-semibold">{title}</h2>
         <p className="mt-2 text-sm text-muted-foreground">{description}</p>
 
@@ -108,13 +108,13 @@ export default function RecipeImportPanel({
             value={recipeUrl}
             onChange={(event) => setRecipeUrl(event.target.value)}
             placeholder="https://example.com/my-recipe"
-            className="w-full rounded-xl border border-border bg-background px-4 py-2 text-sm"
+            className="recipe-editor-input"
           />
           <button
             type="button"
             onClick={handleParseUrl}
             disabled={isLoading || !recipeUrl.trim()}
-            className="rounded-xl border border-border bg-background px-4 py-2 text-sm font-medium disabled:cursor-not-allowed disabled:opacity-50"
+            className="recipe-editor-action recipe-editor-action--secondary disabled:cursor-not-allowed disabled:opacity-50"
           >
             {isLoading ? "Reading..." : "Read Recipe URL"}
           </button>
@@ -124,7 +124,7 @@ export default function RecipeImportPanel({
         {error ? <p className="mt-3 text-sm text-red-700">{error}</p> : null}
       </section>
 
-      <section className="rounded-2xl border border-border bg-surface p-6 shadow-sm">
+      <section className="recipe-import-panel">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <h3 className="text-xl font-semibold">Extracted Draft</h3>
           <div className="flex items-center gap-2">
@@ -132,14 +132,14 @@ export default function RecipeImportPanel({
               type="button"
               onClick={handleUseDraft}
               disabled={!draft || isApplying}
-              className="rounded-lg border border-border px-3 py-1.5 text-sm font-medium disabled:cursor-not-allowed disabled:opacity-50"
+              className="recipe-editor-action recipe-editor-action--primary disabled:cursor-not-allowed disabled:opacity-50"
             >
               {isApplying ? "Applying..." : useDraftButtonLabel}
             </button>
             {secondaryLinkHref && secondaryLinkLabel ? (
               <Link
                 href={secondaryLinkHref}
-                className="rounded-lg border border-border px-3 py-1.5 text-sm font-medium"
+                className="recipe-editor-action recipe-editor-action--secondary"
               >
                 {secondaryLinkLabel}
               </Link>

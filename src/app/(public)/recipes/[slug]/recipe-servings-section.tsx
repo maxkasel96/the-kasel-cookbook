@@ -92,7 +92,7 @@ export default function RecipeServingsSection({
   }, [getScaledQuantity, ingredients])
 
   return (
-    <section className="grid gap-8 md:grid-cols-[minmax(0,1fr)_minmax(0,1.3fr)]">
+    <section className="recipe-cook-layout">
       <RecipeIngredients
         ingredients={ingredients}
         initialServings={initialServings}
@@ -100,17 +100,18 @@ export default function RecipeServingsSection({
         isValidServings={isValidServings}
         onServingsChange={setServingsInput}
         getScaledQuantity={getScaledQuantity}
-        recipeId={String(recipeId)}
-        recipeTitle={recipeTitle}
       />
 
       <div className="space-y-6">
-        <div className="recipe-detail-panel rounded-2xl p-6">
-          <h2 className="text-xl font-semibold text-foreground">
-            Instructions
-          </h2>
+        <div className="recipe-detail-panel recipe-instructions-panel">
+          <div className="recipe-panel-heading">
+            <div>
+              <p className="recipe-panel-heading__kicker">Method</p>
+              <h2>Instructions</h2>
+            </div>
+          </div>
           {steps.length ? (
-            <ol className="mt-4 list-decimal space-y-4 pl-6 text-sm text-foreground">
+            <ol className="recipe-step-list">
               {steps.map((step, index) => {
                 const assignedIngredients = (
                   step.recipe_instruction_step_ingredients ?? []
@@ -123,15 +124,18 @@ export default function RecipeServingsSection({
                   )
 
                 return (
-                  <li key={step.id ?? index} className="leading-relaxed">
-                    <span>{step.content ?? ''}</span>
+                  <li key={step.id ?? index} className="recipe-step">
+                    <span className="recipe-step__number">{index + 1}</span>
+                    <div className="recipe-step__body">
+                      <p>{step.content ?? ''}</p>
                     {assignedIngredients.length ? (
-                      <ul className="mt-1 list-disc pl-5 text-xs italic text-foreground/80">
+                      <ul className="recipe-step__ingredients">
                         {assignedIngredients.map((a, i) => (
                           <li key={i}>{a}</li>
                         ))}
                       </ul>
                     ) : null}
+                    </div>
                   </li>
                 )
               })}

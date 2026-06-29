@@ -1,10 +1,5 @@
 'use client'
 
-import { useState } from 'react'
-
-import { trackShoppingItemAdded } from '@/lib/analytics/track'
-import { createShoppingListItem } from '@/lib/shopping-list-client'
-
 type ScaledQuantityFormatter = (quantity: number | null) => string | null
 
 type RecipeIngredient = {
@@ -23,8 +18,6 @@ type RecipeIngredientsProps = {
   isValidServings: boolean
   onServingsChange: (value: string) => void
   getScaledQuantity: ScaledQuantityFormatter
-  recipeId: string
-  recipeTitle: string
 }
 
 export function RecipeIngredients({
@@ -34,58 +27,19 @@ export function RecipeIngredients({
   isValidServings,
   onServingsChange,
   getScaledQuantity,
-  recipeId,
-  recipeTitle,
 }: RecipeIngredientsProps) {
-  const [pendingIds, setPendingIds] = useState<Record<string, boolean>>({})
-  const [feedback, setFeedback] = useState<string | null>(null)
-
-  const handleAdd = async (
-    ingredient: RecipeIngredient,
-    displayLabel: string
-  ) => {
-    const ingredientId = String(ingredient.id)
-    setPendingIds((prev) => ({ ...prev, [ingredientId]: true }))
-    setFeedback(null)
-    try {
-      await createShoppingListItem({
-        ingredientText: displayLabel,
-        recipeId,
-        recipeTitle,
-      })
-      trackShoppingItemAdded({
-        item_name: ingredient.ingredient_text,
-        source: 'recipe',
-        ...(ingredient.quantity !== null ? { quantity: ingredient.quantity } : {}),
-        ...(ingredient.unit ? { unit: ingredient.unit } : {}),
-        recipe_id: recipeId,
-        recipe_title: recipeTitle,
-      })
-      setFeedback(`Added ${ingredient.ingredient_text} to the shopping list.`)
-    } catch (error) {
-      setFeedback(
-        error instanceof Error
-          ? error.message
-          : 'Unable to add item to the shopping list.'
-      )
-    } finally {
-      setPendingIds((prev) => {
-        const next = { ...prev }
-        delete next[ingredientId]
-        return next
-      })
-    }
-  }
-
   return (
-    <div className="recipe-detail-panel rounded-2xl p-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h2 className="text-xl font-semibold text-foreground">
-          Ingredients
-        </h2>
+    <div className="recipe-detail-panel recipe-ingredients-panel">
+      <div className="recipe-panel-heading recipe-panel-heading--split">
+        <div className="recipe-panel-heading__main">
+          <div>
+            <p className="recipe-panel-heading__kicker">Ingredients</p>
+            <h2>Ingredients</h2>
+          </div>
+        </div>
         {initialServings ? (
-          <div className="flex items-center gap-3 text-sm text-muted-foreground">
-            <span className="text-xs font-semibold uppercase tracking-[0.2em]">
+          <div className="recipe-servings-control">
+            <span>
               Servings
             </span>
             <input
@@ -98,7 +52,7 @@ export function RecipeIngredients({
               value={servingsInput}
               onChange={(event) => onServingsChange(event.target.value)}
             />
-            <span className="text-xs text-muted-foreground">
+            <span>
               Base: {initialServings}
             </span>
           </div>
@@ -109,11 +63,6 @@ export function RecipeIngredients({
           Enter a serving value greater than 0 to update quantities.
         </p>
       ) : null}
-      {feedback ? (
-        <p className="recipe-detail-feedback mt-3 rounded-xl px-3 py-2 text-xs">
-          {feedback}
-        </p>
-      ) : null}
       {ingredients.length ? (
         <ul className="mt-4 space-y-3 text-sm text-foreground">
           {ingredients.map((ingredient) => {
@@ -122,11 +71,10 @@ export function RecipeIngredients({
             const displayLabel = `${
               scaledQuantity !== null ? `${scaledQuantity} ` : ''
             }${unitLabel}${ingredient.ingredient_text}`.trim()
-            const isPending = Boolean(pendingIds[String(ingredient.id)])
             return (
               <li
                 key={ingredient.id}
-                className="recipe-ingredient-item grid grid-cols-[1fr_auto] items-center gap-3 rounded-lg border px-3 py-2.5 transition"
+                className="recipe-ingredient-item rounded-lg border px-3 py-2.5 transition"
               >
                 <div className="min-w-0">
                   <span className="block text-sm font-medium leading-6">
@@ -140,16 +88,6 @@ export function RecipeIngredients({
                     </span>
                   )}
                 </div>
-                <button
-                  type="button"
-                  disabled={isPending}
-                  onClick={() => handleAdd(ingredient, displayLabel)}
-                  className="recipe-add-button flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-lg font-semibold leading-none transition disabled:cursor-not-allowed disabled:opacity-60"
-                  aria-label="Add to list"
-                  title="Add to list"
-                >
-                  <span aria-hidden="true">{isPending ? '...' : '+'}</span>
-                </button>
               </li>
             )
           })}

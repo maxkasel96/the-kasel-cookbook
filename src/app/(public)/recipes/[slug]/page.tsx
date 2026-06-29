@@ -1,6 +1,14 @@
 import Link from 'next/link'
+import { Clock, Flame, Users } from 'lucide-react'
 import { notFound } from 'next/navigation'
+import type { ReactNode } from 'react'
 
+import {
+  Button,
+  MetadataPill,
+  PageShell,
+  Panel,
+} from '@/components/ui/primitives'
 import { getMealBySlug, getMeals } from '@/lib/db/meals'
 import { getRecipeBySlug } from '@/lib/db/recipes'
 import FavoriteRecipeButton from './FavoriteRecipeButton'
@@ -132,15 +140,34 @@ export default async function RecipeDetailPage({
 
   const detailItems = [
     recipe.prep_minutes
-      ? { label: 'Prep time', value: formatMinutes(recipe.prep_minutes) }
+      ? {
+          label: 'Prep',
+          value: formatMinutes(recipe.prep_minutes),
+          icon: <Clock aria-hidden="true" />,
+        }
       : null,
     recipe.cook_minutes
-      ? { label: 'Cook time', value: formatMinutes(recipe.cook_minutes) }
+      ? {
+          label: 'Cook',
+          value: formatMinutes(recipe.cook_minutes),
+          icon: <Flame aria-hidden="true" />,
+        }
       : null,
-  ].filter(Boolean) as { label: string; value: string | number }[]
+    recipe.servings
+      ? {
+          label: 'Serves',
+          value: recipe.servings,
+          icon: <Users aria-hidden="true" />,
+        }
+      : null,
+  ].filter(Boolean) as {
+    label: string
+    value: string | number
+    icon: ReactNode
+  }[]
 
   return (
-    <main className="mx-auto flex w-full max-w-4xl flex-col gap-8 px-6 py-10">
+    <PageShell variant="detail">
       <RecipeViewTracker
         recipeId={String(recipe.id)}
         recipeTitle={recipe.title}
@@ -155,93 +182,85 @@ export default async function RecipeDetailPage({
           recipes={mealNavigation.recipes}
         />
       ) : null}
-      <header className="recipe-detail-hero space-y-4">
-        <div className="recipe-detail-heading flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-          <div className="space-y-3">
-            <p className="recipe-detail-kicker text-sm font-semibold uppercase tracking-[0.3em]">
-              Saved recipe
-            </p>
-            <h1 className="text-4xl font-semibold text-foreground">
-              {recipe.title}
-            </h1>
-            {recipe.description ? (
-              <p className="text-base text-muted-foreground">
-                {recipe.description}
-              </p>
-            ) : null}
-            <Link
-              href={`/recipes/${recipe.slug}/edit`}
-              className="recipe-detail-edit-link inline-flex rounded-full px-4 py-2 text-sm font-semibold transition"
-            >
-              Edit recipe
-            </Link>
+      <Panel className="recipe-detail-hero">
+        <div className="recipe-detail-heading">
+          <div className="recipe-detail-heading__copy">
+            <p className="recipe-detail-kicker">Saved recipe</p>
+            <h1>{recipe.title}</h1>
+            {recipe.description ? <p>{recipe.description}</p> : null}
           </div>
-          <div className="recipe-detail-header-actions">
+          <div className="recipe-detail-header-actions" aria-label="Recipe actions">
             <FavoriteRecipeButton
               recipe={{
                 id: recipe.id,
                 slug: recipe.slug,
                 title: recipe.title,
                 description: recipe.description,
+                prep_minutes: recipe.prep_minutes,
+                cook_minutes: recipe.cook_minutes,
+                servings: recipe.servings,
                 recipe_tags: recipe.recipe_tags,
                 recipe_categories: recipe.recipe_categories,
               }}
             />
+            <Button as={Link} href={`/recipes/${recipe.slug}/edit`} size="sm">
+              Edit
+            </Button>
           </div>
         </div>
         {detailItems.length ? (
-          <dl className="recipe-detail-stats mt-4 grid gap-3 rounded-2xl p-4 text-sm sm:grid-cols-3">
+          <div className="recipe-detail-stats">
             {detailItems.map((item) => (
-              <div key={item.label} className="space-y-1">
-                <dt className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-                  {item.label}
-                </dt>
-                <dd className="text-base font-semibold">{item.value}</dd>
-              </div>
+              <MetadataPill
+                key={item.label}
+                icon={item.icon}
+                label={item.label}
+                value={item.value}
+              />
             ))}
-          </dl>
+          </div>
         ) : (
-          <p className="mt-4 text-sm text-muted-foreground">
+          <p className="recipe-detail-muted">
             Prep, cook, and serving details have not been added yet.
           </p>
         )}
-        <div className="space-y-2 text-xs text-muted-foreground">
+        <div className="recipe-detail-taxonomy">
           {categoryList.length ? (
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+            <div>
+              <span className="recipe-detail-taxonomy__label">
                 Categories
               </span>
               {categoryList.map((category: string) => (
                 <span
                   key={category}
-                  className="recipe-detail-chip rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em]"
+                  className="recipe-detail-chip"
                 >
                   {category}
                 </span>
               ))}
             </div>
           ) : (
-            <p>No categories have been associated with this recipe.</p>
+            <p className="recipe-detail-muted">No categories have been associated with this recipe.</p>
           )}
           {tagList.length ? (
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+            <div>
+              <span className="recipe-detail-taxonomy__label">
                 Tags
               </span>
               {tagList.map((tag: string) => (
                 <span
                   key={tag}
-                  className="recipe-detail-chip rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em]"
+                  className="recipe-detail-chip"
                 >
                   {tag}
                 </span>
               ))}
             </div>
           ) : (
-            <p>No tags have been associated with this recipe.</p>
+            <p className="recipe-detail-muted">No tags have been associated with this recipe.</p>
           )}
         </div>
-      </header>
+      </Panel>
 
       <RecipeServingsSection
         ingredients={recipe.recipe_ingredients ?? []}
@@ -261,6 +280,6 @@ export default async function RecipeDetailPage({
       <div className="recipe-detail-floating-actions fixed bottom-6 right-6 z-10">
         <ScreenWakeLockButton />
       </div>
-    </main>
+    </PageShell>
   )
 }

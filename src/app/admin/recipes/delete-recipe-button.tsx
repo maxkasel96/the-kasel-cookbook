@@ -50,7 +50,7 @@ export default function DeleteRecipeButton({
         </p>
         <div className="flex flex-wrap justify-end gap-2">
           <button
-            className="rounded-full border border-border px-4 py-2 text-sm font-semibold transition hover:bg-surface-muted disabled:opacity-60"
+            className="ui-button ui-button--ghost ui-button--sm disabled:opacity-60"
             type="button"
             disabled={isDeleting}
             onClick={() => {
@@ -61,7 +61,7 @@ export default function DeleteRecipeButton({
             Cancel
           </button>
           <button
-            className="rounded-full bg-red-700 px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-800 disabled:cursor-not-allowed disabled:opacity-60"
+            className="ui-button ui-button--danger ui-button--sm disabled:cursor-not-allowed disabled:opacity-60"
             type="button"
             disabled={isDeleting}
             onClick={deleteRecipe}
@@ -80,7 +80,7 @@ export default function DeleteRecipeButton({
 
   return (
     <button
-      className="rounded-full border border-red-700 px-4 py-2 text-sm font-semibold text-red-700 transition hover:bg-red-50"
+      className="ui-button ui-button--danger ui-button--sm"
       type="button"
       onClick={() => setIsConfirming(true)}
     >

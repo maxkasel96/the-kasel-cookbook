@@ -6,7 +6,7 @@ export default function manifest(): MetadataRoute.Manifest {
     name: 'The Kasel Cookbook',
     short_name: 'Cookbook',
     description:
-      'Browse family recipes, plan meals, save favorites, and build a shared shopping list.',
+      'Browse family recipes, plan meals, and save favorites.',
     start_url: '/recipes',
     scope: '/',
     display: 'standalone',

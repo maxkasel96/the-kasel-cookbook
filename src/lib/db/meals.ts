@@ -13,7 +13,12 @@ export async function getMeals() {
         description,
         created_at,
         meal_recipes (
-          id
+          id,
+          recipes (
+            id,
+            title,
+            slug
+          )
         )
       `
     )
