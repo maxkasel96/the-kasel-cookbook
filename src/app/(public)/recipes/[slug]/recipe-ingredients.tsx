@@ -1,5 +1,7 @@
 'use client'
 
+import { useMemo } from 'react'
+
 type ScaledQuantityFormatter = (quantity: number | null) => string | null
 
 type RecipeIngredient = {
@@ -28,6 +30,23 @@ export function RecipeIngredients({
   onServingsChange,
   getScaledQuantity,
 }: RecipeIngredientsProps) {
+  const ingredientRows = useMemo(
+    () =>
+      ingredients.map((ingredient) => {
+        const scaledQuantity = getScaledQuantity(ingredient.quantity)
+        const unitLabel = ingredient.unit ? `${ingredient.unit} ` : ''
+        const displayLabel = `${
+          scaledQuantity !== null ? `${scaledQuantity} ` : ''
+        }${unitLabel}${ingredient.ingredient_text}`.trim()
+
+        return {
+          ...ingredient,
+          displayLabel,
+        }
+      }),
+    [getScaledQuantity, ingredients]
+  )
+
   return (
     <div className="recipe-detail-panel recipe-ingredients-panel">
       <div className="recipe-panel-heading recipe-panel-heading--split">
@@ -42,9 +61,24 @@ export function RecipeIngredients({
             <span>
               Servings
             </span>
+            <button
+              type="button"
+              className="recipe-servings-stepper"
+              aria-label="Decrease servings"
+              onClick={() => {
+                const parsed = Number(servingsInput || initialServings)
+                const current = Number.isFinite(parsed)
+                  ? parsed
+                  : initialServings
+                const next = Math.max(1, current - 1)
+                onServingsChange(String(next))
+              }}
+            >
+              -
+            </button>
             <input
               aria-label="Adjust servings"
-              className="recipe-detail-input w-20 rounded-full px-3 py-1 text-center text-sm font-semibold shadow-sm"
+              className="recipe-detail-input recipe-servings-input"
               inputMode="decimal"
               min={1}
               step={0.25}
@@ -52,6 +86,21 @@ export function RecipeIngredients({
               value={servingsInput}
               onChange={(event) => onServingsChange(event.target.value)}
             />
+            <button
+              type="button"
+              className="recipe-servings-stepper"
+              aria-label="Increase servings"
+              onClick={() => {
+                const parsed = Number(servingsInput || initialServings)
+                const current = Number.isFinite(parsed)
+                  ? parsed
+                  : initialServings
+                const next = current + 1
+                onServingsChange(String(next))
+              }}
+            >
+              +
+            </button>
             <span>
               Base: {initialServings}
             </span>
@@ -63,35 +112,29 @@ export function RecipeIngredients({
           Enter a serving value greater than 0 to update quantities.
         </p>
       ) : null}
-      {ingredients.length ? (
-        <ul className="mt-4 space-y-3 text-sm text-foreground">
-          {ingredients.map((ingredient) => {
-            const scaledQuantity = getScaledQuantity(ingredient.quantity)
-            const unitLabel = ingredient.unit ? `${ingredient.unit} ` : ''
-            const displayLabel = `${
-              scaledQuantity !== null ? `${scaledQuantity} ` : ''
-            }${unitLabel}${ingredient.ingredient_text}`.trim()
-            return (
-              <li
-                key={ingredient.id}
-                className="recipe-ingredient-item rounded-lg border px-3 py-2.5 transition"
-              >
-                <div className="min-w-0">
-                  <span className="block text-sm font-medium leading-6">
-                    {displayLabel}
-                  </span>
-                  {(ingredient.note || ingredient.is_optional) && (
-                    <span className="recipe-ingredient-meta mt-1 inline-flex max-w-full items-center rounded-full px-2 py-0.5 text-xs leading-5">
-                      {ingredient.note}
-                      {ingredient.note && ingredient.is_optional ? ' · ' : ''}
-                      {ingredient.is_optional ? 'Optional' : ''}
+      {ingredientRows.length ? (
+        <>
+          <ul className="recipe-ingredient-list">
+            {ingredientRows.map((ingredient) => {
+              return (
+                <li key={ingredient.id} className="recipe-ingredient-item">
+                  <div className="recipe-ingredient-item__copy">
+                    <span className="recipe-ingredient-item__label">
+                      {ingredient.displayLabel}
                     </span>
-                  )}
-                </div>
-              </li>
-            )
-          })}
-        </ul>
+                    {(ingredient.note || ingredient.is_optional) && (
+                      <span className="recipe-ingredient-meta">
+                        {ingredient.note}
+                        {ingredient.note && ingredient.is_optional ? ' · ' : ''}
+                        {ingredient.is_optional ? 'Optional' : ''}
+                      </span>
+                    )}
+                  </div>
+                </li>
+              )
+            })}
+          </ul>
+        </>
       ) : (
         <p className="mt-4 text-sm text-muted-foreground">
           No ingredients were saved for this recipe.

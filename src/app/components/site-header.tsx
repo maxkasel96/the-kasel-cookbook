@@ -3,6 +3,7 @@
 import {
   BookOpen,
   ChefHat,
+  ChevronDown,
   Heart,
   Home,
   Menu,
@@ -97,7 +98,9 @@ function NavLink({
 export default function SiteHeader() {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
+  const [isManageOpen, setIsManageOpen] = useState(false);
   const closeMenu = () => setIsOpen(false);
+  const closeManageMenu = () => setIsManageOpen(false);
   const isUtilityActive = utilityNavigation.some((item) =>
     isActivePath(pathname, item)
   );
@@ -175,8 +178,10 @@ export default function SiteHeader() {
       <header className="site-header px-4 py-3 sm:px-6">
         <div className="mx-auto flex w-full max-w-7xl items-center justify-between gap-4">
           <Link className="site-brand" href="/recipes" onClick={closeMenu}>
-            <span className="site-brand__eyebrow">Private Kitchen OS</span>
-            <span className="site-brand__name">The Kasel Cookbook</span>
+            <span className="site-brand__text">
+              <span className="site-brand__eyebrow">The Kasel</span>
+              <span className="site-brand__name">Cookbook</span>
+            </span>
           </Link>
 
           <nav aria-label="Primary" className="hidden lg:block">
@@ -192,7 +197,12 @@ export default function SiteHeader() {
           <div className="hidden items-center gap-2 lg:flex">
             <NavLink item={utilityNavigation[0]} pathname={pathname} />
             <div className="site-nav-menu">
-              <details>
+              <details
+                open={isManageOpen}
+                onToggle={(event) =>
+                  setIsManageOpen(event.currentTarget.open)
+                }
+              >
                 <summary
                   className={[
                     "site-nav-link site-nav-menu__trigger",
@@ -200,6 +210,7 @@ export default function SiteHeader() {
                   ].join(" ")}
                 >
                   <span>Manage</span>
+                  <ChevronDown className="site-nav-menu__chevron" aria-hidden="true" />
                 </summary>
                 <div className="site-nav-menu__panel">
                   {utilityNavigation.slice(1).map((item) => {
@@ -214,6 +225,7 @@ export default function SiteHeader() {
                           isActive ? "site-nav-menu__link--active" : "",
                         ].join(" ")}
                         href={item.href}
+                        onClick={closeManageMenu}
                       >
                         <span>{item.label}</span>
                       </Link>
