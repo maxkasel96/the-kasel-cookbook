@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import RecipeEditorForm from "@/components/recipe-editor-form";
+import { PageHeader, PageShell } from "@/components/ui/primitives";
 import { trackAdminRecipeUpdated } from "@/lib/analytics/track";
 
 type Ingredient = {
@@ -527,18 +528,8 @@ export default function RecipeEditForm({ recipe }: RecipeEditFormProps) {
   };
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
-      <main className="mx-auto flex w-full max-w-[88rem] flex-col gap-6 px-4 py-6 sm:px-6 sm:py-8 lg:gap-8 lg:px-8 lg:py-10">
-        <header className="flex flex-col gap-3">
-          <p className="recipe-editor-page-kicker">
-            Saved recipe
-          </p>
-          <h1 className="recipe-editor-page-title">Edit recipe</h1>
-          <p className="recipe-editor-page-intro">
-            Update the recipe details, ingredients, and preparation steps. Changes
-            will immediately refresh the saved recipe entry.
-          </p>
-        </header>
+    <PageShell variant="editor">
+        <PageHeader title="Edit recipe" />
 
         <RecipeEditorForm
           availableCategories={availableCategories}
@@ -603,7 +594,6 @@ export default function RecipeEditForm({ recipe }: RecipeEditFormProps) {
           }}
           title={title}
         />
-      </main>
-    </div>
+    </PageShell>
   );
 }

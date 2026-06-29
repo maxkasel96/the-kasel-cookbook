@@ -27,6 +27,57 @@ type Props = {
   messages?: Messages;
 };
 
+type JsonRecord = Record<string, unknown>;
+
+type ParsedStepObject = {
+  text?: unknown;
+  ingredientIndexes?: unknown;
+};
+
+type DraftCandidate = Parameters<typeof sanitizeImportedRecipeDraft>[0];
+
+const isRecord = (value: unknown): value is JsonRecord =>
+  typeof value === "object" && value !== null && !Array.isArray(value);
+
+const toStringValue = (value: unknown) =>
+  typeof value === "string" ? value : "";
+
+const toIngredients = (value: unknown): DraftCandidate["ingredients"] =>
+  Array.isArray(value)
+    ? value.map((ingredient) =>
+        isRecord(ingredient)
+          ? {
+              text: toStringValue(ingredient.text),
+              quantity: toStringValue(ingredient.quantity),
+              unit: toStringValue(ingredient.unit),
+              note: toStringValue(ingredient.note),
+              optional:
+                typeof ingredient.optional === "boolean"
+                  ? ingredient.optional
+                  : false,
+            }
+          : {
+              text: "",
+            }
+      )
+    : [];
+
+const toStringArray = (value: unknown) =>
+  Array.isArray(value)
+    ? value.filter((item): item is string => typeof item === "string")
+    : [];
+
+const toStepIngredientIndexes = (
+  value: unknown
+): DraftCandidate["stepIngredientIndexes"] =>
+  Array.isArray(value)
+    ? value.map((row) =>
+        Array.isArray(row)
+          ? row.filter((item): item is number => Number.isInteger(item))
+          : []
+      )
+    : undefined;
+
 export default function RecipeJsonImport({
   onUseDraft,
   useDraftButtonLabel = "Use Draft",
@@ -83,28 +134,60 @@ export default function RecipeJsonImport({
 
     try {
       setIsParsing(true);
-      const parsed = JSON.parse(rawJson);
+      const parsed = JSON.parse(rawJson) as unknown;
 
       // If the parsed object resembles the model output (steps as objects),
       // convert it into an ImportedRecipeDraft-like shape.
-      let candidate: any = parsed;
+      let candidate: DraftCandidate = {
+        sourceUrl: "about:blank",
+        title: "",
+        description: "",
+        servings: "",
+        prepMinutes: "",
+        cookMinutes: "",
+        ingredients: [],
+        steps: [],
+      };
 
-      if (parsed && Array.isArray(parsed.steps) && parsed.steps.length > 0 && typeof parsed.steps[0] === "object") {
+      if (
+        isRecord(parsed) &&
+        Array.isArray(parsed.steps) &&
+        parsed.steps.length > 0 &&
+        isRecord(parsed.steps[0])
+      ) {
+        const steps = parsed.steps as ParsedStepObject[];
         candidate = {
-          sourceUrl: parsed.sourceUrl ?? "about:blank",
-          title: parsed.title ?? "",
-          description: parsed.description ?? "",
-          servings: parsed.servings ?? "",
-          prepMinutes: parsed.prepMinutes ?? "",
-          cookMinutes: parsed.cookMinutes ?? "",
-          ingredients: Array.isArray(parsed.ingredients) ? parsed.ingredients : [],
-          steps: parsed.steps.map((s: any) => s.text ?? ""),
-          stepIngredientIndexes: parsed.steps.map((s: any) => s.ingredientIndexes ?? []),
+          sourceUrl: toStringValue(parsed.sourceUrl) || "about:blank",
+          title: toStringValue(parsed.title),
+          description: toStringValue(parsed.description),
+          servings: toStringValue(parsed.servings),
+          prepMinutes: toStringValue(parsed.prepMinutes),
+          cookMinutes: toStringValue(parsed.cookMinutes),
+          ingredients: toIngredients(parsed.ingredients),
+          steps: steps.map((step) => toStringValue(step.text)),
+          stepIngredientIndexes: steps.map((step) =>
+            Array.isArray(step.ingredientIndexes)
+              ? step.ingredientIndexes.filter((item): item is number =>
+                  Number.isInteger(item)
+                )
+              : []
+          ),
+        };
+      } else if (isRecord(parsed)) {
+        candidate = {
+          sourceUrl: toStringValue(parsed.sourceUrl) || "about:blank",
+          title: toStringValue(parsed.title),
+          description: toStringValue(parsed.description),
+          servings: toStringValue(parsed.servings),
+          prepMinutes: toStringValue(parsed.prepMinutes),
+          cookMinutes: toStringValue(parsed.cookMinutes),
+          ingredients: toIngredients(parsed.ingredients),
+          steps: toStringArray(parsed.steps),
+          stepIngredientIndexes: toStepIngredientIndexes(
+            parsed.stepIngredientIndexes
+          ),
         };
       }
-
-      // If parsed looks like an ImportedRecipeDraft already, ensure sourceUrl exists
-      if (!candidate.sourceUrl) candidate.sourceUrl = "about:blank";
 
       try {
         const sanitized = sanitizeImportedRecipeDraft(candidate);
@@ -131,10 +214,6 @@ export default function RecipeJsonImport({
     } finally {
       setIsParsing(false);
     }
-  };
-
-  const insertExample = () => {
-    setRawJson(exampleJsonString);
   };
 
   const copyToClipboard = async (text: string) => {
@@ -172,8 +251,8 @@ export default function RecipeJsonImport({
   };
 
   return (
-    <div className="flex flex-col gap-6">
-      <section className="rounded-2xl border border-border bg-surface p-6 shadow-sm">
+    <div className="recipe-import-shell">
+      <section className="recipe-import-panel">
         <div className="flex items-start justify-between gap-4">
           <div>
             <h2 className="text-2xl font-semibold">{title}</h2>
@@ -182,7 +261,7 @@ export default function RecipeJsonImport({
           <button
             type="button"
             onClick={() => setShowHelp((current) => !current)}
-            className="rounded-lg border border-border bg-background px-3 py-1.5 text-sm font-medium"
+            className="recipe-editor-action recipe-editor-action--secondary"
           >
             {messages?.helpTitle ?? "Help"}
           </button>
@@ -222,14 +301,14 @@ export default function RecipeJsonImport({
             value={rawJson}
             onChange={(e) => setRawJson(e.target.value)}
             placeholder='Paste JSON here (e.g. {"title":"...","ingredients":[],"steps":[]})'
-            className="w-full min-h-[12rem] rounded-2xl border border-border bg-background px-4 py-3 text-sm leading-6 shadow-sm focus:border-primary focus:outline-none"
+            className="recipe-editor-textarea min-h-[12rem]"
           />
           <div className="flex flex-wrap items-center gap-2">
             <button
               type="button"
               onClick={handleParse}
               disabled={isParsing || !rawJson.trim()}
-              className="rounded-2xl border border-border bg-background px-4 py-2 text-sm font-medium transition hover:border-primary hover:text-primary disabled:cursor-not-allowed disabled:opacity-50"
+              className="recipe-editor-action recipe-editor-action--primary disabled:cursor-not-allowed disabled:opacity-50"
             >
               {messages?.parseButton ?? (isParsing ? "Parsing..." : "Parse JSON")}
             </button>
@@ -237,7 +316,7 @@ export default function RecipeJsonImport({
               type="button"
               onClick={handleClear}
               disabled={!rawJson.trim()}
-              className="rounded-2xl border border-border bg-background px-4 py-2 text-sm font-medium transition hover:border-primary hover:text-primary disabled:cursor-not-allowed disabled:opacity-50"
+              className="recipe-editor-action recipe-editor-action--secondary disabled:cursor-not-allowed disabled:opacity-50"
             >
               Clear
             </button>
@@ -255,7 +334,7 @@ export default function RecipeJsonImport({
         </div>
       </section>
 
-      <section className="rounded-2xl border border-border bg-surface p-6 shadow-sm">
+      <section className="recipe-import-panel">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <h3 className="text-xl font-semibold">Parsed Draft</h3>
           <div className="flex items-center gap-2">
@@ -263,7 +342,7 @@ export default function RecipeJsonImport({
               type="button"
               onClick={handleUseDraft}
               disabled={!draft || isApplying}
-              className="rounded-lg border border-border px-3 py-1.5 text-sm font-medium disabled:cursor-not-allowed disabled:opacity-50"
+              className="recipe-editor-action recipe-editor-action--primary disabled:cursor-not-allowed disabled:opacity-50"
             >
               {isApplying ? "Applying..." : useDraftButtonLabel}
             </button>
@@ -272,7 +351,9 @@ export default function RecipeJsonImport({
         </div>
 
         {!draft ? (
-          <p className="mt-4 text-sm text-muted-foreground">No draft yet. Paste valid recipe JSON and click "Parse JSON".</p>
+          <p className="mt-4 text-sm text-muted-foreground">
+            No draft yet. Paste valid recipe JSON and click &quot;Parse JSON&quot;.
+          </p>
         ) : (
           <div className="mt-4 space-y-5 text-sm">
             <div>

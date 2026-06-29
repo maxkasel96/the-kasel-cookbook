@@ -1,6 +1,7 @@
 'use client'
 
 import RecipesClient from '../recipes/RecipesClient'
+import { Panel, Skeleton } from '@/components/ui/primitives'
 import { useFavorites } from '@/lib/use-favorites'
 
 export default function FavoritesClient() {
@@ -8,9 +9,10 @@ export default function FavoritesClient() {
 
   if (!isHydrated) {
     return (
-      <p className="rounded-lg border border-dashed border-muted-foreground/40 bg-muted/20 px-4 py-8 text-center text-sm text-muted-foreground">
-        Loading favorites…
-      </p>
+      <Panel className="grid gap-3 p-4" tone="soft">
+        <Skeleton className="h-5 w-40" />
+        <Skeleton className="h-40 w-full" />
+      </Panel>
     )
   }
 

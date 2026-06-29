@@ -1,8 +1,10 @@
 'use client'
 
+import { Search } from 'lucide-react'
 import { type FormEvent, useMemo, useState } from 'react'
-import Link from 'next/link'
 
+import RecipeCard from '@/components/recipe-card'
+import { EmptyState } from '@/components/ui/primitives'
 import { trackRecipeSearch } from '@/lib/analytics/track'
 import { useFavorites, type FavoriteRecipe } from '@/lib/use-favorites'
 
@@ -132,6 +134,9 @@ export default function RecipesClient({
     setSelectedCategories([])
   }
 
+  const activeFilterCount =
+    (searchTerm.trim() ? 1 : 0) + selectedTags.length + selectedCategories.length
+
   const handleSearchSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     trackRecipeSearch({
@@ -143,144 +148,129 @@ export default function RecipesClient({
   }
 
   return (
-    <section className="space-y-6">
-      <form className="recipes-panel" onSubmit={handleSearchSubmit}>
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-          <div className="flex-1 space-y-3">
+    <section className="recipe-library">
+      <form className="recipes-panel recipe-command-surface" onSubmit={handleSearchSubmit}>
+        <div className="recipes-panel__header">
+          <div>
+            <p className="recipes-label">Recipe finder</p>
+            <p className="recipes-panel__summary">
+              {filteredRecipes.length} of {recipes.length} recipes
+              {activeFilterCount ? ` · ${activeFilterCount} active` : ''}
+            </p>
+          </div>
+          {activeFilterCount > 0 ? (
+            <button
+              type="button"
+              onClick={clearFilters}
+              className="recipes-clear-button"
+            >
+              Clear all
+            </button>
+          ) : null}
+        </div>
+
+        <div className="recipes-search-row">
+          <div className="recipes-search-field">
             <label
               htmlFor="recipe-search"
-              className="recipes-label"
+              className="sr-only"
             >
               Search recipes
             </label>
-            <input
-              id="recipe-search"
-              type="search"
-              placeholder="Search by title or description"
-              value={searchTerm}
-              onChange={(event) => setSearchTerm(event.target.value)}
-              className="recipes-input"
-            />
-            <button
-              type="submit"
-              className="recipes-secondary-button mt-1"
-            >
-              Apply search
-            </button>
-          </div>
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="recipes-count">
-              {filteredRecipes.length} of {recipes.length} recipes
-            </span>
-            {(searchTerm.length > 0 ||
-              selectedTags.length > 0 ||
-              selectedCategories.length > 0) && (
-              <button
-                type="button"
-                onClick={clearFilters}
-                className="recipes-secondary-button"
-              >
-                Clear filters
+            <div className="recipes-command-bar">
+              <Search aria-hidden="true" />
+              <input
+                id="recipe-search"
+                type="search"
+                placeholder="Search by title or description"
+                value={searchTerm}
+                onChange={(event) => setSearchTerm(event.target.value)}
+                className="recipes-input"
+              />
+              <button type="submit" className="recipes-secondary-button">
+                Search
               </button>
-            )}
+            </div>
           </div>
         </div>
-        {availableCategories.length > 0 && (
-          <div className="recipes-divider">
-            <p className="recipes-filter-label">
-              Filter by category
-            </p>
-            <div className="mt-3 flex flex-wrap gap-2">
-              {availableCategories.map((category) => {
-                const isSelected = selectedCategories.includes(category)
-                return (
-                  <button
-                    key={category}
-                    type="button"
-                    onClick={() => toggleCategory(category)}
-                    className={`filter-pill ${isSelected ? 'filter-pill--active' : ''}`}
-                  >
-                    {category}
-                  </button>
-                )
-              })}
-            </div>
-          </div>
-        )}
-        {availableTags.length > 0 && (
-          <div className="recipes-divider">
-            <p className="recipes-filter-label">Filter by tag</p>
-            <div className="mt-3 flex flex-wrap gap-2">
-              {availableTags.map((tag) => {
-                const isSelected = selectedTags.includes(tag)
-                return (
-                  <button
-                    key={tag}
-                    type="button"
-                    onClick={() => toggleTag(tag)}
-                    className={`filter-pill ${isSelected ? 'filter-pill--active' : ''}`}
-                  >
-                    {tag}
-                  </button>
-                )
-              })}
-            </div>
-          </div>
-        )}
+
+        <div className="recipes-filter-grid">
+          {availableCategories.length > 0 && (
+            <section className="recipes-filter-group" aria-labelledby="category-filter-heading">
+              <div className="recipes-filter-group__header">
+                <p id="category-filter-heading" className="recipes-filter-label">
+                  Categories
+                </p>
+                {selectedCategories.length ? (
+                  <span>{selectedCategories.length} selected</span>
+                ) : null}
+              </div>
+              <div className="recipes-chip-tray">
+                {availableCategories.map((category) => {
+                  const isSelected = selectedCategories.includes(category)
+                  return (
+                    <button
+                      key={category}
+                      type="button"
+                      onClick={() => toggleCategory(category)}
+                      aria-pressed={isSelected}
+                      className={`filter-pill ${isSelected ? 'filter-pill--active' : ''}`}
+                    >
+                      {category}
+                    </button>
+                  )
+                })}
+              </div>
+            </section>
+          )}
+          {availableTags.length > 0 && (
+            <section className="recipes-filter-group" aria-labelledby="tag-filter-heading">
+              <div className="recipes-filter-group__header">
+                <p id="tag-filter-heading" className="recipes-filter-label">
+                  Tags
+                </p>
+                {selectedTags.length ? (
+                  <span>{selectedTags.length} selected</span>
+                ) : null}
+              </div>
+              <div className="recipes-chip-tray">
+                {availableTags.map((tag) => {
+                  const isSelected = selectedTags.includes(tag)
+                  return (
+                    <button
+                      key={tag}
+                      type="button"
+                      onClick={() => toggleTag(tag)}
+                      aria-pressed={isSelected}
+                      className={`filter-pill ${isSelected ? 'filter-pill--active' : ''}`}
+                    >
+                      {tag}
+                    </button>
+                  )
+                })}
+              </div>
+            </section>
+          )}
+        </div>
       </form>
 
       {recipes.length === 0 ? (
-        <p className="editorial-empty-state text-sm">
-          {emptyMessage}
-        </p>
+        <EmptyState title="No recipes yet">
+          <p>{emptyMessage}</p>
+        </EmptyState>
       ) : filteredRecipes.length === 0 ? (
-        <p className="editorial-empty-state text-sm">
-          {noMatchMessage}
-        </p>
+        <EmptyState title="No matches">
+          <p>{noMatchMessage}</p>
+        </EmptyState>
       ) : (
         <section className="recipe-grid sm:grid-cols-2 lg:grid-cols-3">
           {filteredRecipes.map((recipe) => (
-            <Link
+            <RecipeCard
               key={recipe.id}
-              href={`/recipes/${recipe.slug}`}
-              className="recipe-card group h-full"
-            >
-              <button
-                type="button"
-                onClick={(event) => {
-                  event.preventDefault()
-                  event.stopPropagation()
-                  toggleFavorite(recipe)
-                }}
-                className={`recipe-card__favorite ${
-                  isFavorite(recipe.id) ? 'recipe-card__favorite--active' : ''
-                }`}
-                aria-label={
-                  isFavorite(recipe.id)
-                    ? `Remove ${recipe.title} from favorites`
-                    : `Add ${recipe.title} to favorites`
-                }
-              >
-                <span aria-hidden="true">
-                  {isFavorite(recipe.id) ? '♥' : '♡'}
-                </span>
-              </button>
-              <div className="flex flex-1 flex-col gap-3">
-                <h2 className="recipe-card__title">
-                  {recipe.title}
-                </h2>
-                {recipe.description ? (
-                  <p className="recipe-card__description">
-                    {recipe.description}
-                  </p>
-                ) : (
-                  <p className="recipe-card__description">
-                    A saved recipe ready for the kitchen.
-                  </p>
-                )}
-              </div>
-              <span className="recipe-card__footer">View recipe</span>
-            </Link>
+              recipe={recipe}
+              isFavorite={isFavorite(recipe.id)}
+              onToggleFavorite={toggleFavorite}
+            />
           ))}
         </section>
       )}

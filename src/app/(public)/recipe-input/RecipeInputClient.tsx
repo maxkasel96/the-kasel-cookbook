@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 
 import RecipeImportPanel from "@/components/recipe-import-panel";
+import { PageHeader, PageShell } from "@/components/ui/primitives";
 import {
   RECIPE_IMPORT_DRAFT_STORAGE_KEY,
   type ImportedRecipeDraft,
@@ -20,13 +21,14 @@ export default function RecipeInputClient() {
   };
 
   return (
-    <main className="mx-auto flex w-full max-w-4xl flex-col gap-6 px-6 py-12">
+    <PageShell variant="default">
+      <PageHeader title="Import a recipe" />
       <RecipeImportPanel
         onUseDraft={handleUseDraft}
         useDraftButtonLabel="Use in Create Recipe"
         secondaryLinkHref="/admin/recipes/create"
         secondaryLinkLabel="Go to Create Recipe"
       />
-    </main>
+    </PageShell>
   );
 }

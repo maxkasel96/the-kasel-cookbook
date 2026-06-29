@@ -1,8 +1,21 @@
 "use client";
 
+import {
+  BookOpen,
+  ChefHat,
+  Heart,
+  Home,
+  Menu,
+  Plus,
+  Settings,
+  Soup,
+  Users,
+  X,
+} from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
+import type { ComponentType } from "react";
 import { createPortal } from "react-dom";
 
 type NavMatch = "exact" | "prefix";
@@ -11,27 +24,29 @@ type NavItem = {
   label: string;
   href: string;
   match: NavMatch;
+  icon: ComponentType<{ className?: string }>;
   isProminent?: boolean;
 };
 
-const navigation: NavItem[] = [
-  { label: "Recipes", href: "/recipes", match: "prefix" },
+const primaryNavigation: NavItem[] = [
+  { label: "Recipes", href: "/recipes", match: "prefix", icon: BookOpen },
+  { label: "Favorites", href: "/favorites", match: "exact", icon: Heart },
+  { label: "Meals", href: "/meals", match: "prefix", icon: Soup },
+];
+
+const utilityNavigation: NavItem[] = [
   {
     label: "Create Recipe",
     href: "/admin/recipes/create",
     match: "exact",
+    icon: Plus,
     isProminent: true,
   },
-];
-
-const secondaryNavigation: NavItem[] = [
-  { label: "Manage Recipes", href: "/admin/recipes", match: "exact" },
-  { label: "Favorites", href: "/favorites", match: "exact" },
-  { label: "Meals", href: "/meals", match: "prefix" },
-  { label: "Shopping List", href: "/shopping-list", match: "exact" },
-  { label: "Households", href: "/households", match: "exact" },
-  { label: "Access", href: "/admin/access", match: "exact" },
-  { label: "Login", href: "/login", match: "exact" },
+  { label: "Manage Recipes", href: "/admin/recipes", match: "exact", icon: Settings },
+  { label: "Recipe Input", href: "/recipe-input", match: "exact", icon: ChefHat },
+  { label: "Households", href: "/households", match: "exact", icon: Users },
+  { label: "Access", href: "/admin/access", match: "exact", icon: Settings },
+  { label: "Login", href: "/login", match: "exact", icon: Home },
 ];
 
 function isActivePath(pathname: string, item: NavItem) {
@@ -42,30 +57,50 @@ function isActivePath(pathname: string, item: NavItem) {
   return pathname === item.href || pathname.startsWith(`${item.href}/`);
 }
 
-function getDesktopLinkClass(item: NavItem, isActive: boolean) {
-  if (item.isProminent) {
-    return [
-      "site-nav-link site-nav-link--prominent",
-      isActive ? "site-nav-link--active" : "",
-    ].join(" ");
-  }
+function NavLink({
+  item,
+  pathname,
+  onClick,
+  mobile = false,
+}: {
+  item: NavItem;
+  pathname: string;
+  onClick?: () => void;
+  mobile?: boolean;
+}) {
+  const Icon = mobile ? item.icon : null;
+  const isActive = isActivePath(pathname, item);
+  const className = mobile
+    ? [
+        "site-mobile-tab",
+        isActive ? "site-mobile-tab--active" : "",
+      ].join(" ")
+    : [
+        "site-nav-link",
+        item.isProminent ? "site-nav-link--prominent" : "",
+        isActive ? "site-nav-link--active" : "",
+      ].join(" ");
 
-  return [
-    "site-nav-link",
-    isActive ? "site-nav-link--active" : "text-foreground",
-  ].join(" ");
+  return (
+    <Link
+      aria-current={isActive ? "page" : undefined}
+      className={className}
+      href={item.href}
+      onClick={onClick}
+    >
+      {Icon ? <Icon className="site-nav-icon" aria-hidden="true" /> : null}
+      <span>{item.label}</span>
+    </Link>
+  );
 }
 
 export default function SiteHeader() {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
-  const isSecondaryActive = secondaryNavigation.some((item) =>
-    isActivePath(pathname, item),
+  const closeMenu = () => setIsOpen(false);
+  const isUtilityActive = utilityNavigation.some((item) =>
+    isActivePath(pathname, item)
   );
-
-  const closeMenu = () => {
-    setIsOpen(false);
-  };
 
   const mobileMenu =
     isOpen && typeof document !== "undefined"
@@ -73,120 +108,101 @@ export default function SiteHeader() {
           <>
             <button
               type="button"
-              className="site-mobile-overlay fixed inset-0 z-[2000] opacity-100 sm:hidden"
+              className="site-mobile-overlay fixed inset-0 z-[2000] opacity-100 lg:hidden"
               aria-hidden="true"
               tabIndex={-1}
               onClick={closeMenu}
             />
             <aside
               id="mobile-navigation"
-              className="site-mobile-panel fixed right-0 top-0 z-[2010] flex h-full w-[86vw] max-w-xs flex-col gap-6 overflow-y-auto px-5 py-6 sm:hidden"
+              className="site-mobile-panel fixed right-0 top-0 z-[2010] flex h-full w-[88vw] max-w-sm flex-col gap-6 overflow-y-auto px-5 py-6 lg:hidden"
               role="dialog"
               aria-modal="true"
               aria-label="Navigation menu"
             >
-              <div className="flex items-center justify-between gap-4">
+              <div className="flex items-start justify-between gap-4">
                 <div className="min-w-0">
-                  <div className="site-brand__eyebrow">Menu</div>
-                  <div className="truncate text-base font-semibold text-text-strong">
+                  <div className="site-brand__eyebrow">Private Kitchen OS</div>
+                  <div className="truncate text-lg font-bold text-text-strong">
                     The Kasel Cookbook
                   </div>
                 </div>
                 <button
                   type="button"
-                  className="site-mobile-close"
+                  className="site-mobile-icon-button"
                   aria-label="Close navigation menu"
                   onClick={closeMenu}
                 >
-                  Close
+                  <X aria-hidden="true" />
                 </button>
               </div>
-              <nav
-                aria-label="Mobile navigation"
-                className="flex flex-col gap-5"
-              >
-                <div className="flex flex-col gap-2">
-                  {navigation.map((item) => {
-                    const isActive = isActivePath(pathname, item);
-
-                    return (
-                      <Link
+              <nav aria-label="Mobile menu" className="flex flex-col gap-5">
+                <div>
+                  <p className="site-mobile-section-label">Cooking</p>
+                  <div className="mt-2 grid gap-2">
+                    {primaryNavigation.map((item) => (
+                      <NavLink
                         key={item.href}
-                        aria-current={isActive ? "page" : undefined}
-                        className={`${getDesktopLinkClass(item, isActive)} w-full justify-start`}
-                        href={item.href}
+                        item={item}
+                        pathname={pathname}
                         onClick={closeMenu}
-                      >
-                        {item.label}
-                      </Link>
-                    );
-                  })}
+                      />
+                    ))}
+                  </div>
                 </div>
-                <div className="border-t border-border/60 pt-5">
-                  <div className="flex flex-col gap-2">
-                    {secondaryNavigation.map((item) => {
-                      const isActive = isActivePath(pathname, item);
-
-                      return (
-                        <Link
-                          key={item.href}
-                          aria-current={isActive ? "page" : undefined}
-                          className={[
-                            "site-nav-menu__link",
-                            isActive ? "site-nav-menu__link--active" : "",
-                          ].join(" ")}
-                          href={item.href}
-                          onClick={closeMenu}
-                        >
-                          {item.label}
-                        </Link>
-                      );
-                    })}
+                <div>
+                  <p className="site-mobile-section-label">Manage</p>
+                  <div className="mt-2 grid gap-2">
+                    {utilityNavigation.map((item) => (
+                      <NavLink
+                        key={item.href}
+                        item={item}
+                        pathname={pathname}
+                        onClick={closeMenu}
+                      />
+                    ))}
                   </div>
                 </div>
               </nav>
             </aside>
           </>,
-          document.body,
+          document.body
         )
       : null;
 
   return (
-    <header className="site-header px-4 py-4 sm:px-6 sm:py-5">
-      <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-4">
-        <Link className="site-brand" href="/recipes" onClick={closeMenu}>
-          <span className="site-brand__eyebrow">Family Recipe Archive</span>
-          <span className="site-brand__name">The Kasel Cookbook</span>
-        </Link>
-        <nav aria-label="Primary" className="hidden sm:block">
-          <ul className="flex flex-wrap items-center gap-2">
-            {navigation.map((item) => {
-              const isActive = isActivePath(pathname, item);
+    <>
+      <header className="site-header px-4 py-3 sm:px-6">
+        <div className="mx-auto flex w-full max-w-7xl items-center justify-between gap-4">
+          <Link className="site-brand" href="/recipes" onClick={closeMenu}>
+            <span className="site-brand__eyebrow">Private Kitchen OS</span>
+            <span className="site-brand__name">The Kasel Cookbook</span>
+          </Link>
 
-              return (
+          <nav aria-label="Primary" className="hidden lg:block">
+            <ul className="flex items-center gap-1.5">
+              {primaryNavigation.map((item) => (
                 <li key={item.href}>
-                  <Link
-                    aria-current={isActive ? "page" : undefined}
-                    className={`${getDesktopLinkClass(item, isActive)} w-full sm:w-auto`}
-                    href={item.href}
-                  >
-                    {item.label}
-                  </Link>
+                  <NavLink item={item} pathname={pathname} />
                 </li>
-              );
-            })}
-            <li className="site-nav-menu">
+              ))}
+            </ul>
+          </nav>
+
+          <div className="hidden items-center gap-2 lg:flex">
+            <NavLink item={utilityNavigation[0]} pathname={pathname} />
+            <div className="site-nav-menu">
               <details>
                 <summary
                   className={[
                     "site-nav-link site-nav-menu__trigger",
-                    isSecondaryActive ? "site-nav-link--active" : "",
+                    isUtilityActive ? "site-nav-link--active" : "",
                   ].join(" ")}
                 >
-                  Menu
+                  <span>Manage</span>
                 </summary>
                 <div className="site-nav-menu__panel">
-                  {secondaryNavigation.map((item) => {
+                  {utilityNavigation.slice(1).map((item) => {
                     const isActive = isActivePath(pathname, item);
 
                     return (
@@ -199,32 +215,39 @@ export default function SiteHeader() {
                         ].join(" ")}
                         href={item.href}
                       >
-                        {item.label}
+                        <span>{item.label}</span>
                       </Link>
                     );
                   })}
                 </div>
               </details>
-            </li>
-          </ul>
-        </nav>
-        <button
-          type="button"
-          className="site-menu-button flex items-center justify-center sm:hidden"
-          aria-label="Open navigation menu"
-          aria-expanded={isOpen}
-          aria-controls="mobile-navigation"
-          onClick={() => setIsOpen(true)}
-        >
-          <span className="sr-only">Open menu</span>
-          <span className="flex flex-col gap-1">
-            <span className="block h-0.5 w-5 bg-current" />
-            <span className="block h-0.5 w-5 bg-current" />
-            <span className="block h-0.5 w-5 bg-current" />
-          </span>
-        </button>
-      </div>
-      {mobileMenu}
-    </header>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            className="site-menu-button flex items-center justify-center lg:hidden"
+            aria-label="Open navigation menu"
+            aria-expanded={isOpen}
+            aria-controls="mobile-navigation"
+            onClick={() => setIsOpen(true)}
+          >
+            <Menu aria-hidden="true" />
+          </button>
+        </div>
+        {mobileMenu}
+      </header>
+
+      <nav className="site-bottom-nav lg:hidden" aria-label="Primary mobile">
+        {primaryNavigation.map((item) => (
+          <NavLink
+            key={item.href}
+            item={item}
+            pathname={pathname}
+            mobile
+          />
+        ))}
+      </nav>
+    </>
   );
 }

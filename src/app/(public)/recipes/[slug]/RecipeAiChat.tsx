@@ -119,16 +119,16 @@ export default function RecipeAiChat({
   }
 
   return (
-    <section className="recipe-detail-panel rounded-2xl p-6">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-        <div className="space-y-2">
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+    <section className="recipe-detail-panel recipe-assistant-panel">
+      <div className="recipe-assistant-panel__header">
+        <div>
+          <p className="recipe-panel-heading__kicker">
             Cooking Assistant
           </p>
-          <h2 className="text-xl font-semibold text-foreground">
+          <h2>
             Ask about this recipe
           </h2>
-          <p className="text-sm text-muted-foreground">
+          <p>
             Ask for substitutions, technique help, timing, or troubleshooting.
           </p>
         </div>
@@ -222,7 +222,11 @@ export default function RecipeAiChat({
             disabled={!canSubmit}
             className="recipe-detail-primary-action rounded-full px-5 py-2 text-sm font-semibold shadow-sm transition disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {isSubmitting ? 'Asking...' : 'Ask'}
+            {isSubmitting ? 'Asking...' : (
+              <>
+                Ask
+              </>
+            )}
           </button>
         </div>
       </form>

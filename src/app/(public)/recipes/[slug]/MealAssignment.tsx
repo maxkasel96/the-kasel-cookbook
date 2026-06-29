@@ -96,10 +96,13 @@ export default function MealAssignment({
       })
       setNewMealTitle('')
       setSelectedMealId('')
-    } catch (error: any) {
+    } catch (error: unknown) {
       setStatus({
         type: 'error',
-        message: error?.message ?? 'Unable to add this recipe to the meal.',
+        message:
+          error instanceof Error
+            ? error.message
+            : 'Unable to add this recipe to the meal.',
       })
     } finally {
       setIsSubmitting(false)

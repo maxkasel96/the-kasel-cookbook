@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import RecipeEditorForm from "@/components/recipe-editor-form";
 import RecipeImportPanel from "@/components/recipe-import-panel";
 import RecipeJsonImport from "@/components/recipe-json-import";
+import { PageHeader, PageShell } from "@/components/ui/primitives";
 import { trackAdminRecipeCreated } from "@/lib/analytics/track";
 import {
   RECIPE_IMPORT_DRAFT_STORAGE_KEY,
@@ -568,19 +569,8 @@ export default function AdminCreateRecipePage() {
   };
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
-      <main className="mx-auto flex w-full max-w-[88rem] flex-col gap-6 px-4 py-6 sm:px-6 sm:py-8 lg:gap-8 lg:px-8 lg:py-10">
-        <header className="flex flex-col gap-3">
-          <p className="recipe-editor-page-kicker">
-            Admin
-          </p>
-          <h1 className="recipe-editor-page-title">Create recipe</h1>
-          <p className="recipe-editor-page-intro">
-            Capture recipe descriptions, ingredient quantities, and preparation
-            instructions before saving them to the database. You must be signed
-            in with Google to access this page.
-          </p>
-        </header>
+    <PageShell variant="editor">
+        <PageHeader title="Create recipe" />
 
         <section className="recipe-start-selector">
           <button
@@ -779,7 +769,6 @@ export default function AdminCreateRecipePage() {
             </div>
           </aside>
         </div>
-      </main>
-    </div>
+    </PageShell>
   );
 }
