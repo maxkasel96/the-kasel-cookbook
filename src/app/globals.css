@@ -2794,6 +2794,100 @@ p {
   box-shadow: 0 12px 22px rgba(0, 132, 95, 0.18);
 }
 
+.recipe-delete-action {
+  display: flex;
+  justify-content: flex-end;
+  border-top: 1px solid rgba(53, 79, 68, 0.1);
+  padding-top: 1rem;
+}
+
+.recipe-delete-action__trigger {
+  border-color: transparent;
+  background: transparent;
+  color: var(--text-muted);
+  font-weight: 650;
+}
+
+.recipe-delete-action__trigger:hover {
+  border-color: rgba(225, 47, 56, 0.2);
+  background: rgba(225, 47, 56, 0.06);
+  color: var(--danger);
+}
+
+.recipe-delete-dialog {
+  width: min(29rem, calc(100vw - 2rem));
+  max-width: none;
+  overflow: hidden;
+  border: 1px solid rgba(225, 47, 56, 0.2);
+  border-radius: 1.15rem;
+  background: var(--surface);
+  box-shadow: var(--shadow-3);
+  color: var(--text);
+  padding: 0;
+}
+
+.recipe-delete-dialog::backdrop {
+  background: rgba(23, 19, 15, 0.48);
+  backdrop-filter: blur(3px);
+}
+
+.recipe-delete-dialog__content {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 1rem;
+  padding: clamp(1.2rem, 4vw, 1.65rem);
+}
+
+.recipe-delete-dialog__icon {
+  display: inline-flex;
+  width: 2.75rem;
+  height: 2.75rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: rgba(225, 47, 56, 0.1);
+  color: var(--danger);
+}
+
+.recipe-delete-dialog__icon svg {
+  width: 1.2rem;
+  height: 1.2rem;
+}
+
+.recipe-delete-dialog h2 {
+  font-size: 1.2rem;
+  font-weight: 780;
+  letter-spacing: -0.02em;
+}
+
+.recipe-delete-dialog p {
+  margin-top: 0.35rem;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
+.recipe-delete-dialog__error {
+  grid-column: 1 / -1;
+  border-radius: 0.7rem;
+  background: rgba(225, 47, 56, 0.08);
+  color: var(--danger) !important;
+  padding: 0.65rem 0.75rem;
+}
+
+.recipe-delete-dialog__actions {
+  display: flex;
+  grid-column: 1 / -1;
+  justify-content: flex-end;
+  gap: 0.65rem;
+  margin-top: 0.25rem;
+}
+
+.recipe-delete-dialog__actions button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
 @media (max-width: 920px) {
   .recipe-detail-hero {
     grid-template-columns: 1fr;
@@ -2894,6 +2988,33 @@ p {
   .recipe-detail-floating-actions {
     right: 1rem;
     bottom: 1rem;
+  }
+
+  .recipe-delete-action {
+    justify-content: stretch;
+  }
+
+  .recipe-delete-action__trigger {
+    width: 100%;
+  }
+
+  .recipe-delete-dialog {
+    width: 100%;
+    max-height: calc(100dvh - 1rem);
+    margin: auto 0 0;
+    border-right: 0;
+    border-bottom: 0;
+    border-left: 0;
+    border-radius: 1.15rem 1.15rem 0 0;
+  }
+
+  .recipe-delete-dialog__actions {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .recipe-delete-dialog__actions button {
+    width: 100%;
   }
 
   .recipe-wake-lock__button {
