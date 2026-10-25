@@ -3042,7 +3042,8 @@ p {
   --editor-divider: rgba(159, 210, 189, 0.8);
   --editor-input-bg:
     linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(255, 255, 255, 0.98));
-  padding-bottom: calc(6.8rem + env(safe-area-inset-bottom));
+  /* Leave room for both the editor actions and the mobile site navigation. */
+  padding-bottom: calc(9.5rem + env(safe-area-inset-bottom));
 }
 
 .recipe-editor-layout {
@@ -3487,7 +3488,7 @@ p {
   position: fixed;
   left: 1rem;
   right: 1rem;
-  bottom: calc(5.8rem + env(safe-area-inset-bottom));
+  bottom: calc(9.6rem + env(safe-area-inset-bottom));
   z-index: 60;
   display: flex;
   align-items: flex-start;
@@ -3662,7 +3663,8 @@ p {
   position: fixed;
   left: 0;
   right: 0;
-  bottom: 0;
+  /* The global mobile nav occupies the bottom of the viewport at z-index 1000. */
+  bottom: calc(4.75rem + env(safe-area-inset-bottom));
   display: flex;
   align-items: center;
   gap: 0.65rem;
@@ -3674,7 +3676,7 @@ p {
     0 -14px 28px rgba(75, 62, 48, 0.12),
     inset 0 1px 0 rgba(255, 255, 255, 0.8);
   backdrop-filter: blur(16px);
-  padding: 0.7rem 0.85rem calc(0.75rem + env(safe-area-inset-bottom));
+  padding: 0.7rem 0.85rem 0.75rem;
 }
 
 .recipe-editor-mobile-bar .recipe-editor-action {
