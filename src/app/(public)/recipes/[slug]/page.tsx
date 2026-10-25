@@ -12,6 +12,7 @@ import {
 import { getMealBySlug, getMeals } from '@/lib/db/meals'
 import { getRecipeBySlug } from '@/lib/db/recipes'
 import { isCurrentUserAdmin } from '@/lib/auth/roles'
+import DeleteRecipeAction from './DeleteRecipeAction'
 import FavoriteRecipeButton from './FavoriteRecipeButton'
 import MealRecipeNavigator from './MealRecipeNavigator'
 import RecipeAiChat from './RecipeAiChat'
@@ -293,6 +294,13 @@ export default async function RecipeDetailPage({
         recipeSlug={recipe.slug}
         recipeTitle={recipe.title}
       />
+
+      {canEditRecipe ? (
+        <DeleteRecipeAction
+          recipeId={String(recipe.id)}
+          recipeTitle={recipe.title}
+        />
+      ) : null}
 
       <div className="recipe-detail-floating-actions fixed bottom-6 right-6 z-10">
         <ScreenWakeLockButton />
