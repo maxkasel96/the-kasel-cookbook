@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/primitives'
 import { getMealBySlug, getMeals } from '@/lib/db/meals'
 import { getRecipeBySlug } from '@/lib/db/recipes'
+import { isCurrentUserAdmin } from '@/lib/auth/roles'
 import FavoriteRecipeButton from './FavoriteRecipeButton'
 import MealRecipeNavigator from './MealRecipeNavigator'
 import RecipeAiChat from './RecipeAiChat'
@@ -99,8 +100,11 @@ export default async function RecipeDetailPage({
   const mealSlug = Array.isArray(mealSlugParam)
     ? mealSlugParam[0]
     : mealSlugParam
-  const recipe = await getRecipeBySlug(slug)
-  const meals = await getMeals()
+  const [recipe, meals, canEditRecipe] = await Promise.all([
+    getRecipeBySlug(slug),
+    getMeals(),
+    isCurrentUserAdmin(),
+  ])
 
   if (!recipe) {
     notFound()
@@ -284,6 +288,7 @@ export default async function RecipeDetailPage({
       />
 
       <RecipeAiChat
+        canEditRecipe={canEditRecipe}
         recipeId={String(recipe.id)}
         recipeSlug={recipe.slug}
         recipeTitle={recipe.title}

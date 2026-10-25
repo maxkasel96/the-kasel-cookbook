@@ -1,3 +1,7 @@
+import { z } from 'zod'
+
+import type { RecipeAssistantResponse } from '@/lib/recipe-ai-types'
+
 type RecipeIngredient = {
   id: number | string
   ingredient_text?: string | null
@@ -70,6 +74,128 @@ const DEFAULT_CHAT_MODEL = 'gpt-4.1-mini'
 const CHAT_TIMEOUT_MS = 20000
 const MAX_MESSAGE_CHARS = 1200
 const MAX_HISTORY_MESSAGES = 8
+
+const recipeAssistantResponseSchema = z.object({
+  answer: z.string().trim().min(1),
+  proposal: z
+    .object({
+      summary: z.array(z.string().trim().min(1)).min(1),
+      recipe: z.object({
+        title: z.string().trim().min(1),
+        description: z.string(),
+        prepMinutes: z.number().finite().nonnegative().nullable(),
+        cookMinutes: z.number().finite().nonnegative().nullable(),
+        servings: z.number().finite().positive().nullable(),
+        tags: z.array(z.string()),
+        categories: z.array(z.string()),
+        ingredients: z
+          .array(
+            z.object({
+              ingredientText: z.string().trim().min(1),
+              quantity: z.string(),
+              unit: z.string(),
+              note: z.string(),
+              isOptional: z.boolean(),
+            })
+          )
+          .min(1),
+        steps: z
+          .array(
+            z.object({
+              content: z.string().trim().min(1),
+              ingredientPositions: z.array(z.number().int().positive()),
+            })
+          )
+          .min(1),
+      }),
+    })
+    .nullable(),
+})
+
+const recipeAssistantResponseJsonSchema = {
+  type: 'object',
+  additionalProperties: false,
+  required: ['answer', 'proposal'],
+  properties: {
+    answer: { type: 'string' },
+    proposal: {
+      anyOf: [
+        { type: 'null' },
+        {
+          type: 'object',
+          additionalProperties: false,
+          required: ['summary', 'recipe'],
+          properties: {
+            summary: {
+              type: 'array',
+              items: { type: 'string' },
+            },
+            recipe: {
+              type: 'object',
+              additionalProperties: false,
+              required: [
+                'title',
+                'description',
+                'prepMinutes',
+                'cookMinutes',
+                'servings',
+                'tags',
+                'categories',
+                'ingredients',
+                'steps',
+              ],
+              properties: {
+                title: { type: 'string' },
+                description: { type: 'string' },
+                prepMinutes: { type: ['number', 'null'] },
+                cookMinutes: { type: ['number', 'null'] },
+                servings: { type: ['number', 'null'] },
+                tags: { type: 'array', items: { type: 'string' } },
+                categories: { type: 'array', items: { type: 'string' } },
+                ingredients: {
+                  type: 'array',
+                  items: {
+                    type: 'object',
+                    additionalProperties: false,
+                    required: [
+                      'ingredientText',
+                      'quantity',
+                      'unit',
+                      'note',
+                      'isOptional',
+                    ],
+                    properties: {
+                      ingredientText: { type: 'string' },
+                      quantity: { type: 'string' },
+                      unit: { type: 'string' },
+                      note: { type: 'string' },
+                      isOptional: { type: 'boolean' },
+                    },
+                  },
+                },
+                steps: {
+                  type: 'array',
+                  items: {
+                    type: 'object',
+                    additionalProperties: false,
+                    required: ['content', 'ingredientPositions'],
+                    properties: {
+                      content: { type: 'string' },
+                      ingredientPositions: {
+                        type: 'array',
+                        items: { type: 'integer' },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      ],
+    },
+  },
+} as const
 
 const isPresentString = (value: string | null | undefined): value is string =>
   Boolean(value?.trim())
@@ -196,7 +322,11 @@ function sanitizeMessages(messages: RecipeChatMessage[]) {
     }))
 }
 
-function buildChatInput(recipe: RecipeChatContext, messages: RecipeChatMessage[]) {
+function buildChatInput(
+  recipe: RecipeChatContext,
+  messages: RecipeChatMessage[],
+  allowEdits: boolean
+) {
   const sanitizedMessages = sanitizeMessages(messages)
 
   return [
@@ -210,7 +340,16 @@ function buildChatInput(recipe: RecipeChatContext, messages: RecipeChatMessage[]
             'Answer only using the saved recipe context provided by the server.',
             'You may explain cooking techniques, substitutions, prep order, timing, doneness cues, and troubleshooting when they are grounded in the recipe.',
             'If the recipe does not provide enough information, say so briefly and give a cautious cooking-focused suggestion.',
-            'Do not claim to update, edit, save, or modify the recipe.',
+            allowEdits
+              ? [
+                  'You may propose recipe edits when the user asks to improve, adapt, rewrite, or apply advice to the recipe.',
+                  'A proposal must contain the complete revised recipe, preserving every unchanged field and item.',
+                  'Use decimal numeric strings or an empty string for ingredient quantities; do not use fraction strings such as 1/2.',
+                  'ingredientPositions are 1-based indexes into the proposed ingredients array.',
+                  'Summarize only the material changes. Never say changes were saved; say they are ready for review.',
+                  'For ordinary questions that do not request a recipe change, return a null proposal.',
+                ].join(' ')
+              : 'You cannot propose, update, edit, save, or modify the recipe. Always return a null proposal.',
             'Do not provide medical or nutrition advice beyond general cooking context.',
             'Keep answers practical for someone actively cooking. Aim for 2-5 short sentences unless a short list is clearer.',
           ].join(' '),
@@ -284,8 +423,9 @@ async function extractResponseText(payload: OpenAIResponsePayload) {
 
 export async function askRecipeAssistant(
   recipe: RecipeChatContext,
-  messages: RecipeChatMessage[]
-) {
+  messages: RecipeChatMessage[],
+  options: { allowEdits: boolean }
+): Promise<RecipeAssistantResponse> {
   const apiKey = process.env.OPENAI_API_KEY
   if (!apiKey) {
     throw new Error(
@@ -302,8 +442,16 @@ export async function askRecipeAssistant(
     },
     body: JSON.stringify({
       model,
-      max_output_tokens: 450,
-      input: buildChatInput(recipe, messages),
+      max_output_tokens: options.allowEdits ? 2600 : 650,
+      input: buildChatInput(recipe, messages, options.allowEdits),
+      text: {
+        format: {
+          type: 'json_schema',
+          name: 'recipe_assistant_response',
+          strict: true,
+          schema: recipeAssistantResponseJsonSchema,
+        },
+      },
     }),
     signal: AbortSignal.timeout(CHAT_TIMEOUT_MS),
   })
@@ -314,5 +462,13 @@ export async function askRecipeAssistant(
     throw new Error(payload.error?.message ?? 'OpenAI recipe chat failed.')
   }
 
-  return extractResponseText(payload)
+  const responseText = await extractResponseText(payload)
+
+  try {
+    return recipeAssistantResponseSchema.parse(
+      JSON.parse(responseText)
+    ) as RecipeAssistantResponse
+  } catch {
+    throw new Error('OpenAI returned an invalid recipe edit proposal.')
+  }
 }

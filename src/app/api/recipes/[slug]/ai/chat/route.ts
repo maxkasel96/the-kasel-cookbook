@@ -4,7 +4,7 @@ import {
   askRecipeAssistant,
   type RecipeChatMessage,
 } from '@/lib/recipe-ai-chat.server'
-import { getCurrentUser } from '@/lib/auth/roles'
+import { ADMIN_ROLE, getCurrentUserRole } from '@/lib/auth/roles'
 import { getRecipeBySlug } from '@/lib/db/recipes'
 
 type RouteContext = {
@@ -20,9 +20,9 @@ type ChatBody = {
 export const runtime = 'nodejs'
 
 export async function POST(request: Request, context: RouteContext) {
-  const user = await getCurrentUser()
+  const role = await getCurrentUserRole()
 
-  if (!user) {
+  if (!role) {
     return NextResponse.json({ error: 'Unauthorized.' }, { status: 401 })
   }
 
@@ -47,9 +47,11 @@ export async function POST(request: Request, context: RouteContext) {
       return NextResponse.json({ error: 'Recipe not found.' }, { status: 404 })
     }
 
-    const answer = await askRecipeAssistant(recipe, messages)
+    const assistantResponse = await askRecipeAssistant(recipe, messages, {
+      allowEdits: role === ADMIN_ROLE,
+    })
 
-    return NextResponse.json({ answer })
+    return NextResponse.json(assistantResponse)
   } catch (error) {
     return NextResponse.json(
       {

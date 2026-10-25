@@ -1,10 +1,13 @@
 'use client'
 
 import { useMemo, useRef, useState } from 'react'
+import { useRouter } from 'next/navigation'
 
 import { trackRecipeAiChatSubmitted } from '@/lib/analytics/track'
+import type { RecipeEditProposal } from '@/lib/recipe-ai-types'
 
 type RecipeAiChatProps = {
+  canEditRecipe: boolean
   recipeId: string
   recipeSlug: string
   recipeTitle: string
@@ -18,6 +21,13 @@ type ChatMessage = {
 
 type ChatResponse = {
   answer?: string
+  proposal?: RecipeEditProposal | null
+  error?: string
+}
+
+type SaveResponse = {
+  id?: string
+  slug?: string
   error?: string
 }
 
@@ -34,13 +44,20 @@ const createMessageId = () =>
     : `${Date.now()}-${Math.random()}`
 
 export default function RecipeAiChat({
+  canEditRecipe,
   recipeId,
   recipeSlug,
   recipeTitle,
 }: RecipeAiChatProps) {
+  const router = useRouter()
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [draft, setDraft] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isSaving, setIsSaving] = useState(false)
+  const [pendingProposal, setPendingProposal] =
+    useState<RecipeEditProposal | null>(null)
+  const [isConfirmingProposal, setIsConfirmingProposal] = useState(false)
+  const [saveStatus, setSaveStatus] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const inputRef = useRef<HTMLTextAreaElement | null>(null)
 
@@ -63,6 +80,9 @@ export default function RecipeAiChat({
     setMessages(nextMessages)
     setDraft('')
     setError(null)
+    setPendingProposal(null)
+    setIsConfirmingProposal(false)
+    setSaveStatus(null)
     setIsSubmitting(true)
 
     trackRecipeAiChatSubmitted({
@@ -101,6 +121,7 @@ export default function RecipeAiChat({
           content: payload.answer ?? '',
         },
       ])
+      setPendingProposal(payload.proposal ?? null)
     } catch (caughtError) {
       setError(
         caughtError instanceof Error
@@ -118,6 +139,62 @@ export default function RecipeAiChat({
     void submitQuestion(draft)
   }
 
+  const applyProposal = async () => {
+    if (!pendingProposal || isSaving) return
+
+    setError(null)
+    setSaveStatus(null)
+    setIsSaving(true)
+
+    try {
+      const response = await fetch(`/api/admin/recipes/${recipeId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          ...pendingProposal.recipe,
+          status: 'published',
+          steps: pendingProposal.recipe.steps.map((step) => ({
+            ...step,
+            ingredientPositions: step.ingredientPositions.filter(
+              (position) =>
+                position >= 1 &&
+                position <= pendingProposal.recipe.ingredients.length
+            ),
+          })),
+        }),
+      })
+      const payload = (await response.json()) as SaveResponse
+
+      if (!response.ok || !payload.slug) {
+        throw new Error(payload.error ?? 'Unable to save the recipe changes.')
+      }
+
+      setPendingProposal(null)
+      setIsConfirmingProposal(false)
+      setSaveStatus('Recipe changes saved successfully.')
+
+      if (payload.slug !== recipeSlug) {
+        router.push(`/recipes/${encodeURIComponent(payload.slug)}`)
+      } else {
+        router.refresh()
+      }
+    } catch (caughtError) {
+      setError(
+        caughtError instanceof Error
+          ? caughtError.message
+          : 'Unable to save the recipe changes.'
+      )
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
+  const quickPrompts = canEditRecipe
+    ? [...QUICK_PROMPTS, 'Improve this recipe and propose the changes']
+    : QUICK_PROMPTS
+
   return (
     <section className="recipe-detail-panel recipe-assistant-panel">
       <div className="recipe-assistant-panel__header">
@@ -130,12 +207,15 @@ export default function RecipeAiChat({
           </h2>
           <p>
             Ask for substitutions, technique help, timing, or troubleshooting.
+            {canEditRecipe
+              ? ' You can also ask for a revised recipe to review and apply.'
+              : ''}
           </p>
         </div>
       </div>
 
       <div className="mt-5 flex flex-wrap gap-2">
-        {QUICK_PROMPTS.map((prompt) => (
+        {quickPrompts.map((prompt) => (
           <button
             key={prompt}
             type="button"
@@ -183,6 +263,120 @@ export default function RecipeAiChat({
           </div>
         ) : null}
       </div>
+
+      {pendingProposal ? (
+        <section className="recipe-ai-proposal mt-5" aria-labelledby="recipe-ai-proposal-title">
+          <div className="recipe-ai-proposal__header">
+            <div>
+              <p className="recipe-panel-heading__kicker">Proposed update</p>
+              <h3 id="recipe-ai-proposal-title">Review before saving</h3>
+            </div>
+            <span>Not saved</span>
+          </div>
+
+          <ul className="recipe-ai-proposal__summary">
+            {pendingProposal.summary.map((item, index) => (
+              <li key={`${item}-${index}`}>{item}</li>
+            ))}
+          </ul>
+
+          <details className="recipe-ai-proposal__details">
+            <summary>Review the complete proposed recipe</summary>
+            <div className="recipe-ai-proposal__content">
+              <div>
+                <h4>{pendingProposal.recipe.title}</h4>
+                {pendingProposal.recipe.description ? (
+                  <p>{pendingProposal.recipe.description}</p>
+                ) : null}
+                <p className="recipe-ai-proposal__meta">
+                  Prep: {pendingProposal.recipe.prepMinutes ?? 'Not set'} min · Cook:{' '}
+                  {pendingProposal.recipe.cookMinutes ?? 'Not set'} min · Servings:{' '}
+                  {pendingProposal.recipe.servings ?? 'Not set'}
+                </p>
+                {pendingProposal.recipe.categories.length ||
+                pendingProposal.recipe.tags.length ? (
+                  <p className="recipe-ai-proposal__meta">
+                    Categories:{' '}
+                    {pendingProposal.recipe.categories.join(', ') || 'None'} · Tags:{' '}
+                    {pendingProposal.recipe.tags.join(', ') || 'None'}
+                  </p>
+                ) : null}
+              </div>
+              <div>
+                <h4>Ingredients</h4>
+                <ul>
+                  {pendingProposal.recipe.ingredients.map((ingredient, index) => (
+                    <li key={`${ingredient.ingredientText}-${index}`}>
+                      {[ingredient.quantity, ingredient.unit, ingredient.ingredientText]
+                        .filter(Boolean)
+                        .join(' ')}
+                      {ingredient.note ? ` (${ingredient.note})` : ''}
+                      {ingredient.isOptional ? ' (optional)' : ''}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <div>
+                <h4>Steps</h4>
+                <ol>
+                  {pendingProposal.recipe.steps.map((step, index) => (
+                    <li key={`${step.content}-${index}`}>{step.content}</li>
+                  ))}
+                </ol>
+              </div>
+            </div>
+          </details>
+
+          {isConfirmingProposal ? (
+            <div className="recipe-ai-proposal__confirm" role="alert">
+              <p>
+                This will replace the current recipe contents with the proposal above.
+              </p>
+              <div className="recipe-ai-proposal__actions">
+                <button
+                  type="button"
+                  disabled={isSaving}
+                  onClick={() => setIsConfirmingProposal(false)}
+                  className="recipe-ai-proposal__secondary"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  disabled={isSaving}
+                  onClick={() => void applyProposal()}
+                  className="recipe-detail-primary-action"
+                >
+                  {isSaving ? 'Saving...' : 'Confirm and save'}
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="recipe-ai-proposal__actions">
+              <button
+                type="button"
+                onClick={() => setPendingProposal(null)}
+                className="recipe-ai-proposal__secondary"
+              >
+                Dismiss
+              </button>
+              <button
+                type="button"
+                onClick={() => setIsConfirmingProposal(true)}
+                className="recipe-detail-primary-action"
+              >
+                Apply recommended changes
+              </button>
+            </div>
+          )}
+        </section>
+      ) : null}
+
+      {saveStatus ? (
+        <p className="recipe-ai-proposal__success mt-4" role="status">
+          {saveStatus}
+        </p>
+      ) : null}
 
       {error ? (
         <p className="mt-4 rounded-xl border border-danger/40 bg-danger/10 px-4 py-3 text-sm text-danger">

@@ -2066,6 +2066,133 @@ p {
   color: var(--muted-foreground);
 }
 
+.recipe-ai-proposal {
+  border: 1px solid rgba(0, 132, 95, 0.24);
+  border-radius: 1rem;
+  background: rgba(220, 247, 232, 0.34);
+  padding: 1rem;
+}
+
+.recipe-ai-proposal__header,
+.recipe-ai-proposal__actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.recipe-ai-proposal__header h3 {
+  margin-top: 0.12rem;
+  font-size: 1.05rem;
+  font-weight: 750;
+}
+
+.recipe-ai-proposal__header > span {
+  flex: none;
+  border-radius: 999px;
+  background: rgba(106, 82, 38, 0.12);
+  color: var(--text-muted);
+  padding: 0.3rem 0.55rem;
+  font-size: 0.72rem;
+  font-weight: 750;
+}
+
+.recipe-ai-proposal__summary {
+  margin: 0.85rem 0 0;
+  padding-left: 1.15rem;
+  color: var(--text);
+  font-size: 0.9rem;
+  line-height: 1.55;
+  list-style: disc;
+}
+
+.recipe-ai-proposal__details {
+  margin-top: 0.9rem;
+  border-top: 1px solid rgba(0, 132, 95, 0.16);
+  border-bottom: 1px solid rgba(0, 132, 95, 0.16);
+  padding: 0.8rem 0;
+}
+
+.recipe-ai-proposal__details summary {
+  cursor: pointer;
+  color: var(--primary);
+  font-size: 0.84rem;
+  font-weight: 750;
+}
+
+.recipe-ai-proposal__content {
+  display: grid;
+  gap: 1rem;
+  margin-top: 1rem;
+  max-height: 24rem;
+  overflow-y: auto;
+  padding-right: 0.35rem;
+  font-size: 0.86rem;
+  line-height: 1.55;
+}
+
+.recipe-ai-proposal__content h4 {
+  margin-bottom: 0.35rem;
+  font-size: 0.9rem;
+  font-weight: 800;
+}
+
+.recipe-ai-proposal__content ul,
+.recipe-ai-proposal__content ol {
+  padding-left: 1.2rem;
+}
+
+.recipe-ai-proposal__content ul {
+  list-style: disc;
+}
+
+.recipe-ai-proposal__content ol {
+  list-style: decimal;
+}
+
+.recipe-ai-proposal__meta {
+  margin-top: 0.4rem;
+  color: var(--text-muted);
+  font-size: 0.78rem;
+}
+
+.recipe-ai-proposal__actions {
+  justify-content: flex-end;
+  margin-top: 0.9rem;
+}
+
+.recipe-ai-proposal__secondary {
+  border: 1px solid var(--border);
+  border-radius: var(--button-radius);
+  background: rgba(255, 255, 255, 0.72);
+  color: var(--text-muted);
+  padding: 0.55rem 0.8rem;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.recipe-ai-proposal__confirm {
+  margin-top: 0.9rem;
+  border-radius: 0.8rem;
+  background: rgba(255, 255, 255, 0.68);
+  padding: 0.8rem;
+  font-size: 0.84rem;
+}
+
+.recipe-ai-proposal__confirm .recipe-ai-proposal__actions {
+  margin-top: 0.65rem;
+}
+
+.recipe-ai-proposal__success {
+  border: 1px solid rgba(0, 132, 95, 0.24);
+  border-radius: 0.8rem;
+  background: rgba(0, 132, 95, 0.09);
+  color: var(--success);
+  padding: 0.75rem 0.9rem;
+  font-size: 0.88rem;
+}
+
 .recipe-assistant-panel {
   border-radius: var(--radius-lg);
   padding: clamp(1rem, 2.5vw, 1.35rem);
