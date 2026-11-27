@@ -33,6 +33,13 @@ yarn-error.log*
 # env files (can opt-in for committing if needed)
 .env*
 
+# local Supabase migration exports (contain private database/Auth data)
+/roles.sql
+/schema.sql
+/data.sql
+/restore-data.sql
+/.supabase-export.*/
+
 # vercel
 .vercel
 
