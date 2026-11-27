@@ -5,19 +5,20 @@ import {
   ChefHat,
   ChevronDown,
   Heart,
-  Home,
+  LogOut,
   Menu,
   Plus,
   Settings,
   Soup,
-  Users,
   X,
 } from "lucide-react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 import type { ComponentType } from "react";
 import { createPortal } from "react-dom";
+
+import { supabaseBrowserClient } from "@/lib/supabase/client";
 
 type NavMatch = "exact" | "prefix";
 
@@ -45,9 +46,7 @@ const utilityNavigation: NavItem[] = [
   },
   { label: "Manage Recipes", href: "/admin/recipes", match: "exact", icon: Settings },
   { label: "Recipe Input", href: "/recipe-input", match: "exact", icon: ChefHat },
-  { label: "Households", href: "/households", match: "exact", icon: Users },
   { label: "Access", href: "/admin/access", match: "exact", icon: Settings },
-  { label: "Login", href: "/login", match: "exact", icon: Home },
 ];
 
 function isActivePath(pathname: string, item: NavItem) {
@@ -97,13 +96,31 @@ function NavLink({
 
 export default function SiteHeader() {
   const pathname = usePathname();
+  const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const [isManageOpen, setIsManageOpen] = useState(false);
+  const [isSigningOut, setIsSigningOut] = useState(false);
   const closeMenu = () => setIsOpen(false);
   const closeManageMenu = () => setIsManageOpen(false);
   const isUtilityActive = utilityNavigation.some((item) =>
     isActivePath(pathname, item)
   );
+
+  async function signOut() {
+    setIsSigningOut(true);
+    const { error } = await supabaseBrowserClient.auth.signOut();
+
+    if (error) {
+      setIsSigningOut(false);
+      window.alert("Sign out did not complete. Please try again.");
+      return;
+    }
+
+    closeMenu();
+    closeManageMenu();
+    router.replace("/login");
+    router.refresh();
+  }
 
   const mobileMenu =
     isOpen && typeof document !== "undefined"
@@ -164,6 +181,17 @@ export default function SiteHeader() {
                         onClick={closeMenu}
                       />
                     ))}
+                    {pathname !== "/login" ? (
+                      <button
+                        type="button"
+                        className="site-nav-menu__link w-full cursor-pointer border-0 bg-transparent text-left"
+                        disabled={isSigningOut}
+                        onClick={signOut}
+                      >
+                        <LogOut aria-hidden="true" />
+                        <span>{isSigningOut ? "Signing out…" : "Sign out"}</span>
+                      </button>
+                    ) : null}
                   </div>
                 </div>
               </nav>
@@ -231,6 +259,17 @@ export default function SiteHeader() {
                       </Link>
                     );
                   })}
+                  {pathname !== "/login" ? (
+                    <button
+                      type="button"
+                      className="site-nav-menu__link w-full cursor-pointer border-0 bg-transparent text-left"
+                      disabled={isSigningOut}
+                      onClick={signOut}
+                    >
+                      <LogOut aria-hidden="true" />
+                      <span>{isSigningOut ? "Signing out…" : "Sign out"}</span>
+                    </button>
+                  ) : null}
                 </div>
               </details>
             </div>

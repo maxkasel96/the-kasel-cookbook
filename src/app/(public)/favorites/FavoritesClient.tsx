@@ -5,7 +5,7 @@ import { Panel, Skeleton } from '@/components/ui/primitives'
 import { useFavorites } from '@/lib/use-favorites'
 
 export default function FavoritesClient() {
-  const { favorites, isHydrated, selectedHouseholdId } = useFavorites()
+  const { favorites, isHydrated } = useFavorites()
 
   if (!isHydrated) {
     return (
@@ -19,9 +19,7 @@ export default function FavoritesClient() {
   return (
     <div className="space-y-4">
       <p className="text-sm text-muted-foreground">
-        {selectedHouseholdId
-          ? 'Shared household favorites are active.'
-          : 'Personal browser favorites are active. Pick a household to share favorites.'}
+        Favorites are saved in this browser.
       </p>
       <RecipesClient
         recipes={favorites}

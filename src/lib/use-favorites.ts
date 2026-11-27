@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 
 import { trackFavoriteAdded, trackFavoriteRemoved } from '@/lib/analytics/track'
-import { useHouseholds } from '@/lib/use-households'
 
 type RecipeTag = {
   tag_id: string | number
@@ -62,7 +61,6 @@ const readFavoritesFromStorage = () => {
 }
 
 export function useFavorites() {
-  const { selectedHouseholdId } = useHouseholds()
   const [favorites, setFavorites] = useState<FavoriteRecipe[]>([])
   const [isHydrated, setIsHydrated] = useState(false)
 
@@ -73,36 +71,14 @@ export function useFavorites() {
     }
   }, [])
 
-  const loadHouseholdFavorites = useCallback(async (householdId: string) => {
-    const response = await fetch(`/api/households/${householdId}/favorites`)
-    const payload = (await response.json()) as {
-      favorites?: FavoriteRecipe[]
-      error?: string
-    }
-
-    if (!response.ok) {
-      throw new Error(payload.error ?? 'Unable to load household favorites.')
-    }
-
-    setFavorites(payload.favorites ?? [])
-  }, [])
-
   useEffect(() => {
-    const run = async () => {
-      try {
-        if (!selectedHouseholdId) {
-          setFavorites(readFavoritesFromStorage())
-          return
-        }
+    const hydrationTimer = window.setTimeout(() => {
+      setFavorites(readFavoritesFromStorage())
+      setIsHydrated(true)
+    }, 0)
 
-        await loadHouseholdFavorites(selectedHouseholdId)
-      } finally {
-        setIsHydrated(true)
-      }
-    }
-
-    run()
-  }, [selectedHouseholdId, loadHouseholdFavorites])
+    return () => window.clearTimeout(hydrationTimer)
+  }, [])
 
   const favoriteIds = useMemo(
     () => new Set(favorites.map((recipe) => String(recipe.id))),
@@ -115,47 +91,14 @@ export function useFavorites() {
   )
 
   const toggleFavorite = useCallback(
-    async (recipe: FavoriteRecipe) => {
+    (recipe: FavoriteRecipe) => {
       const exists = favoriteIds.has(String(recipe.id))
 
-      if (!selectedHouseholdId) {
-        if (exists) {
-          const nextFavorites = favorites.filter(
-            (item) => String(item.id) !== String(recipe.id)
-          )
-          persistLocalFavorites(nextFavorites)
-          trackFavoriteRemoved({
-            recipe_id: String(recipe.id),
-            recipe_title: recipe.title,
-            recipe_slug: recipe.slug,
-          })
-          return
-        }
-
-        persistLocalFavorites([recipe, ...favorites])
-        trackFavoriteAdded({
-          recipe_id: String(recipe.id),
-          recipe_title: recipe.title,
-          recipe_slug: recipe.slug,
-        })
-        return
-      }
-
       if (exists) {
-        const response = await fetch(
-          `/api/households/${selectedHouseholdId}/favorites?recipeId=${encodeURIComponent(
-            String(recipe.id)
-          )}`,
-          { method: 'DELETE' }
+        const nextFavorites = favorites.filter(
+          (item) => String(item.id) !== String(recipe.id)
         )
-
-        if (!response.ok) {
-          return
-        }
-
-        setFavorites((current) =>
-          current.filter((item) => String(item.id) !== String(recipe.id))
-        )
+        persistLocalFavorites(nextFavorites)
         trackFavoriteRemoved({
           recipe_id: String(recipe.id),
           recipe_title: recipe.title,
@@ -164,26 +107,14 @@ export function useFavorites() {
         return
       }
 
-      const response = await fetch(`/api/households/${selectedHouseholdId}/favorites`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ recipeId: String(recipe.id) }),
-      })
-
-      if (!response.ok) {
-        return
-      }
-
-      setFavorites((current) => [recipe, ...current])
+      persistLocalFavorites([recipe, ...favorites])
       trackFavoriteAdded({
         recipe_id: String(recipe.id),
         recipe_title: recipe.title,
         recipe_slug: recipe.slug,
       })
     },
-    [favoriteIds, favorites, persistLocalFavorites, selectedHouseholdId]
+    [favoriteIds, favorites, persistLocalFavorites]
   )
 
   return {
@@ -191,6 +122,5 @@ export function useFavorites() {
     isFavorite,
     isHydrated,
     toggleFavorite,
-    selectedHouseholdId,
   }
 }
